@@ -251,6 +251,8 @@ def load_settings():
                              "but copy tags for already existing files")
     parser.add_argument('--albumartist-hack', action="store_true",
                         help="Write album artist into composer field")
+    parser.add_argument('--discnumber-hack', action="store_true",
+                        help="Extend album field by disc number")
 
     # Parse
     settings = parser.parse_args(remaining_argv)
@@ -298,7 +300,8 @@ if __name__ == '__main__':
         ACTION_TRANSCODE = Transcode(
             transcode=not ARGS.tags_only,
             copy_tags=not ARGS.transcode_only,
-            composer_hack=ARGS.albumartist_hack)
+            composer_hack=ARGS.albumartist_hack,
+            discnumber_hack=ARGS.discnumber_hack)
     HASH_DB = HashDb(os.path.join(ARGS.audio_dest, 'sync_music.db'))
 
     if (not ARGS.batch and not util.query_yes_no("Do you want to continue?")):

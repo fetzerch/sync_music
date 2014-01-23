@@ -44,6 +44,12 @@ support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
 enabled by the `--albumartist-hack` 
 
+Some media players don't properly support disc number tags with tracks numbered
+starting with 1 for every disc. The user typically wants to group them by disc
+and not by track position. This can be solved by creating a different album for
+each disc. With the `--discnumber-hack` option, the disc number is appended
+to the album field.
+
 Call sync_music with `--help` to get a full list of supported command
 line parameters.
 

@@ -31,7 +31,8 @@ if util.module_exists('mutagen', '1.22', 'version_string'):
 class Transcode(object):
     """ Transcodes audio files """
 
-    def __init__(self, transcode=True, copy_tags=True, composer_hack=False):
+    def __init__(self, transcode=True, copy_tags=True,
+                 composer_hack=False, discnumber_hack=False):
         self.name = "Processing"
         self._format = audiotools.MP3Audio
         self._compression = audiotools.MP3Audio.COMPRESSION_MODES[2]
@@ -56,6 +57,9 @@ class Transcode(object):
         self._composer_hack = composer_hack
         if composer_hack:
             print(" - Writing albumartist into composer field")
+        self._discnumber_hack = discnumber_hack
+        if discnumber_hack:
+            print(" - Extending album field by disc number")
         print("")
 
     def get_out_filename(self, path):
@@ -119,6 +123,8 @@ class Transcode(object):
         # Apply hacks
         if self._composer_hack:
             self.apply_composer_hack(mp3_file.tags)
+        if self._discnumber_hack:
+            self.apply_disknumber_hack(mp3_file.tags)
 
         # Save as id3v1 and id3v2.3
         mp3_file.tags.update_to_v23()
@@ -198,3 +204,11 @@ class Transcode(object):
         """ Copy the albumartist (TPE2) into the composer field (TCOM) """
         if 'TPE2' in tags:
             tags.add(mutagen.id3.TCOM(encoding=3, text=tags['TPE2'].text))
+
+    @classmethod
+    def apply_disknumber_hack(cls, tags):
+        """ Extend album field by disc number """
+        if 'TALB' in tags and 'TPOS' in tags and not tags['TPOS'] == '1':
+            tags.add(mutagen.id3.TALB(
+                encoding=tags['TALB'].encoding,
+                text=tags['TALB'].text[0] + ' - ' + tags['TPOS'].text[0]))
