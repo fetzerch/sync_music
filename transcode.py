@@ -70,10 +70,7 @@ class Transcode(object):
             else:
                 self.copy(in_filepath, out_filepath)
         if self._copy_tags:
-            if os.path.splitext(in_filepath)[1] in ['.flac', '.ogg']:
-                self.copy_vorbiscomments_to_mp3(in_filepath, out_filepath)
-            elif os.path.splitext(in_filepath)[1] == '.mp3':
-                self.copy_id3_to_mp3(in_filepath, out_filepath)
+            self.copy_tags(in_filepath, out_filepath)
 
     @classmethod
     def copy(cls, in_filepath, out_filepath):
@@ -90,19 +87,46 @@ class Transcode(object):
             audiotools.open(in_filepath).convert(out_filepath, self._format,
                                                  compression=self._compression)
         except audiotools.EncodingError as err:
-            raise IOError("Error: Failed to transcode: %s" % err)
+            raise IOError("Failed to transcode: %s" % err)
 
-    def copy_vorbiscomments_to_mp3(self, in_filename, mp3_filename):
-        """ Copy vorbis comments to ID3 tags in MP3 files """
-        print("Copying metadata from %s to %s" % (in_filename.decode('utf-8'),
-                                                  mp3_filename.decode(
-                                                      'utf-8')))
-        in_file = mutagen.File(in_filename)
-        mp3_file = mutagen.mp3.MP3(mp3_filename)
+    def copy_tags(self, in_filepath, out_filepath):
+        """ Copy tags """
+        in_file = mutagen.File(in_filepath)
+
+        # Tags are converted to ID3 format. If the output format is changed
+        # in the functions above, this function has to be adapted too.
+        try:
+            mp3_file = mutagen.mp3.MP3(out_filepath)
+        except mutagen.mp3.HeaderNotFoundError:
+            raise IOError("Output file is not in MP3 format")
+
         if not mp3_file.tags:
             mp3_file.tags = mutagen.id3.ID3()
 
-        # Copy tags
+        # Tags are processed depending on their input format.
+        if isinstance(in_file, mutagen.mp3.MP3):
+            self.copy_id3_to_id3(in_file.tags, mp3_file.tags)
+        elif (isinstance(in_file, mutagen.flac.FLAC) or
+              isinstance(in_file, mutagen.oggvorbis.OggVorbis)):
+            self.copy_vorbis_to_id3(in_file.tags, mp3_file.tags)
+            self.copy_vorbis_picture_to_id3(in_file, mp3_file.tags)
+        else:
+            raise IOError("Input file tag conversion not implemented")
+
+        # Load the image from folder.jpg
+        self.copy_folder_image_to_id3(in_filepath, mp3_file.tags)
+
+        # Apply hacks
+        if self._composer_hack:
+            self.apply_composer_hack(mp3_file.tags)
+
+        # Save as id3v1 and id3v2.3
+        mp3_file.tags.update_to_v23()
+        mp3_file.tags.save(out_filepath, v1=2, v2_version=3)
+
+    @classmethod
+    def copy_vorbis_to_id3(cls, src_tags, dest_tags):
+        """ Copy tags in vorbis comments (ogg, flac) to ID3 format """
         tagtable = {
             'album': mutagen.id3.TALB,
             'artist': mutagen.id3.TPE1,
@@ -114,59 +138,33 @@ class Transcode(object):
             'discnumber': mutagen.id3.TPOS,
         }
         for tag in tagtable.keys():
-            if tag in in_file.tags:
+            if tag in src_tags:
                 id3tag = tagtable[tag]
                 if tag == 'tracknumber':
-                    track = in_file.tags['tracknumber'][0]
-                    if 'tracktotal' in in_file.tags:
-                        track = "%s/%s" % (track,
-                                           in_file.tags['tracktotal'][0])
-                    mp3_file.tags.add(id3tag(encoding=3, text="%s" % track))
+                    track = src_tags['tracknumber'][0]
+                    if 'tracktotal' in src_tags:
+                        track = "%s/%s" % (track, src_tags['tracktotal'][0])
+                    dest_tags.add(id3tag(encoding=3, text="%s" % track))
                 else:  # All other tags
-                    mp3_file.tags.add(id3tag(encoding=3,
-                                      text=in_file.tags[tag]))
+                    dest_tags.add(id3tag(encoding=3, text=src_tags[tag]))
 
-                if self._composer_hack and tag == 'albumartist':
-                    mp3_file.tags.add(mutagen.id3.TCOM(encoding=3,
-                                      text=in_file.tags['albumartist']))
-
-        # Copy cover art
+    @classmethod
+    def copy_vorbis_picture_to_id3(cls, in_file, dest_tags):
+        """ Copy pictures from vorbis comments to ID3 format """
+        # Vorbis files have their image in METADATA_BLOCK_PICTURE
         try:
             for picture in in_file.pictures:
-                mp3_file.tags.add(mutagen.id3.APIC(encoding=3,
-                                                   desc=picture.desc,
-                                                   data=picture.data,
-                                                   type=picture.type,
-                                                   mime=picture.mime))
+                dest_tags.add(mutagen.id3.APIC(encoding=3,
+                                               desc=picture.desc,
+                                               data=picture.data,
+                                               type=picture.type,
+                                               mime=picture.mime))
         except AttributeError:
-            # Ogg files have their image in METADATA_BLOCK_PICTURE
-            image = os.path.join(os.path.dirname(in_filename), 'folder.jpg')
-            if os.path.exists(image):
-                image_file = open(image, 'rb')
-                img = image_file.read()
-                image_file.close()
-                mp3_file.tags.add(mutagen.id3.APIC(3, 'image/jpg', 3, '', img))
+            pass
 
-        # Save as id3v1 and id3v2.3
-        mp3_file.tags.update_to_v23()
-        mp3_file.tags.save(mp3_filename, v1=2, v2_version=3)
-
-    def copy_id3_to_mp3(self, in_filename, mp3_filename):
-        """ Copy ID3 tags to ID3 tags in MP3 files """
-        print("Copying ID3 from %s to %s" % (in_filename.decode('utf-8'),
-                                             mp3_filename.decode('utf-8')))
-        try:
-            in_file = mutagen.File(in_filename)
-        except mutagen.mp3.HeaderNotFoundError as err:
-            raise IOError("Failed to read tags from input file %s" % err)
-
-        if not in_file.tags:
-            in_file.tags = mutagen.id3.ID3()
-
-        mp3_file = mutagen.mp3.MP3(mp3_filename)
-        mp3_file.tags = mutagen.id3.ID3()
-
-        # Copy tags
+    @classmethod
+    def copy_id3_to_id3(cls, src_tags, dest_tags):
+        """ Copy tags from ID3 to ID3 """
         taglist = [
             'TALB',
             'TPE1',
@@ -178,15 +176,25 @@ class Transcode(object):
             'TPOS',
             'APIC:'
         ]
+        if src_tags is None:
+            return
         for tag in taglist:
-            if tag in in_file.tags:
-                # All other tags
-                mp3_file.tags.add(in_file.tags[tag])
+            if tag in src_tags:
+                dest_tags.add(src_tags[tag])
 
-                if self._composer_hack and tag == 'TPE2':
-                    mp3_file.tags.add(mutagen.id3.TCOM(encoding=3,
-                                      text=in_file.tags['TPE2'].text))
+    @classmethod
+    def copy_folder_image_to_id3(cls, in_filename, dest_tags):
+        """ Copy folder.jpg to ID3 tag """
+        if 'APIC:' not in dest_tags:
+            image = os.path.join(os.path.dirname(in_filename), 'folder.jpg')
+            if os.path.exists(image):
+                image_file = open(image, 'rb')
+                img = image_file.read()
+                image_file.close()
+                dest_tags.add(mutagen.id3.APIC(3, 'image/jpg', 3, '', img))
 
-        # Save as id3v1 and id3v2.3
-        mp3_file.tags.update_to_v23()
-        mp3_file.tags.save(mp3_filename, v1=2, v2_version=3)
+    @classmethod
+    def apply_composer_hack(cls, tags):
+        """ Copy the albumartist (TPE2) into the composer field (TCOM) """
+        if 'TPE2' in tags:
+            tags.add(mutagen.id3.TCOM(encoding=3, text=tags['TPE2'].text))
