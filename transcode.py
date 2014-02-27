@@ -32,7 +32,8 @@ class Transcode(object):
     """ Transcodes audio files """
 
     def __init__(self, transcode=True, copy_tags=True,
-                 composer_hack=False, discnumber_hack=False):
+                 composer_hack=False, discnumber_hack=False,
+                 tracknumber_hack=False):
         self.name = "Processing"
         self._format = audiotools.MP3Audio
         self._compression = audiotools.MP3Audio.COMPRESSION_MODES[2]
@@ -60,6 +61,9 @@ class Transcode(object):
         self._discnumber_hack = discnumber_hack
         if discnumber_hack:
             print(" - Extending album field by disc number")
+        self._tracknumber_hack = tracknumber_hack
+        if tracknumber_hack:
+            print(" - Remove track total from track number")
         print("")
 
     def get_out_filename(self, path):
@@ -125,6 +129,8 @@ class Transcode(object):
             self.apply_composer_hack(mp3_file.tags)
         if self._discnumber_hack:
             self.apply_disknumber_hack(mp3_file.tags)
+        if self._tracknumber_hack:
+            self.apply_tracknumber_hack(mp3_file.tags)
 
         # Save as id3v1 and id3v2.3
         mp3_file.tags.update_to_v23()
@@ -212,3 +218,14 @@ class Transcode(object):
             tags.add(mutagen.id3.TALB(
                 encoding=tags['TALB'].encoding,
                 text=tags['TALB'].text[0] + ' - ' + tags['TPOS'].text[0]))
+
+    @classmethod
+    def apply_tracknumber_hack(cls, tags):
+        """ Remove track total from track number """
+        if 'TRCK' in tags:
+            track_string = tags['TRCK'].text[0].split('/')[0]
+            try:
+                track_string = str(int(track_string))
+            except ValueError:
+                pass
+            tags.add(mutagen.id3.TRCK(encoding=0, text=track_string))

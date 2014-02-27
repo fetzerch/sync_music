@@ -253,6 +253,8 @@ def load_settings():
                         help="Write album artist into composer field")
     parser.add_argument('--discnumber-hack', action="store_true",
                         help="Extend album field by disc number")
+    parser.add_argument('--tracknumber-hack', action="store_true",
+                        help="Remove track total from track number")
 
     # Parse
     settings = parser.parse_args(remaining_argv)
@@ -301,7 +303,8 @@ if __name__ == '__main__':
             transcode=not ARGS.tags_only,
             copy_tags=not ARGS.transcode_only,
             composer_hack=ARGS.albumartist_hack,
-            discnumber_hack=ARGS.discnumber_hack)
+            discnumber_hack=ARGS.discnumber_hack,
+            tracknumber_hack=ARGS.tracknumber_hack)
     HASH_DB = HashDb(os.path.join(ARGS.audio_dest, 'sync_music.db'))
 
     if (not ARGS.batch and not util.query_yes_no("Do you want to continue?")):

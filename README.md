@@ -50,6 +50,10 @@ and not by track position. This can be solved by creating a different album for
 each disc. With the `--discnumber-hack` option, the disc number is appended
 to the album field.
 
+Some media players don't properly support track number tags containing the
+total number of tracks on the disk. With the `--tracknumber-hack` option, the
+track total is removed from the track number field.
+
 Call sync_music with `--help` to get a full list of supported command
 line parameters.
 
