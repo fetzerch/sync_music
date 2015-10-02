@@ -1,5 +1,5 @@
 # sync_music - Sync music library to external device
-# Copyright (C) 2013 Christian Fetzer
+# Copyright (C) 2013-2015 Christian Fetzer
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,13 +19,9 @@
 
 import os
 import shutil
-import util
 
 import audiotools
-
-# Mutagen 1.22 supports id3v2.3
-if util.module_exists('mutagen', '1.22', 'version_string'):
-    import mutagen
+import mutagen
 
 
 class Transcode(object):
