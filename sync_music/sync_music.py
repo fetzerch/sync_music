@@ -121,7 +121,7 @@ def sync_audio():
     """ Sync audio """
     # Create a list of all tracks ordered by their last modified time stamp
     files = [(f, get_file_action(f),
-             os.path.getmtime(os.path.join(ARGS.audio_src, f)))
+              os.path.getmtime(os.path.join(ARGS.audio_src, f)))
              for f in util.list_all_files(ARGS.audio_src)]
     files = [(index, len(files), f[0], f[1])
              for index, f in enumerate(files, 1)]
@@ -161,8 +161,9 @@ def sync_playlists():
         for filename in filenames:
             if os.path.splitext(filename)[1] == '.m3u':
                 try:
-                    sync_playlist(os.path.normpath(
-                                  os.path.join(relpath, filename)))
+                    sync_playlist(
+                        os.path.normpath(
+                            os.path.join(relpath, filename)))
                 except IOError as err:
                     print("Error: %s" % err)
 
@@ -307,7 +308,7 @@ def main():
     global HASH_DB
     HASH_DB = HashDb(os.path.join(ARGS.audio_dest, 'sync_music.db'))
 
-    if (not ARGS.batch and not util.query_yes_no("Do you want to continue?")):
+    if not ARGS.batch and not util.query_yes_no("Do you want to continue?"):
         exit(1)
 
     HASH_DB.load()
