@@ -62,7 +62,7 @@ setup(
         'GNU General Public License v2 or later (GPLv2+)',
         'Natural Language :: English',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3 :: Only',
         'Topic :: Multimedia :: Sound/Audio :: Conversion',
     ],
     keywords='music synchronization',
@@ -71,8 +71,8 @@ setup(
         "console_scripts": ['sync_music = sync_music.sync_music:main']
     },
     install_requires=[
-        'mutagen',
-        'audiotools',
+        'mutagen>=1.29',
+        'audiotools>=3.0',
     ],
     dependency_links=[
         'https://github.com/tuffy/python-audio-tools/tarball/v3.0'

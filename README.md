@@ -24,9 +24,18 @@ paths in addition to the FAT32 filename adaptations.
 
 Dependencies
 ------------
-- Python 2.7
-- Python Audio Tools (for transcoding to MP3)
-- Mutagen >= 1.22 (for tag manipulation)
+
+- Python 3.4
+- Python Audio Tools >= 3.0 (for transcoding to MP3)
+- Mutagen >= 1.29 (for tag manipulation)
+
+
+Installation
+------------
+
+```
+$ pip3 install --process-dependency-links sync_music.zip
+```
 
 
 Usage

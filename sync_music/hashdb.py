@@ -33,8 +33,8 @@ class HashDb(object):
         """ Load hash database to disk """
         if os.path.exists(self.path):
             print("Loading hash database from %s" % self.path)
-            hash_file = open(self.path, 'r')
-            self.database = pickle.load(hash_file)
+            hash_file = open(self.path, 'rb')
+            self.database = pickle.load(hash_file, encoding="utf-8")
             hash_file.close()
         else:
             print("Failed to load hash database from %s" % self.path)
@@ -43,7 +43,7 @@ class HashDb(object):
         """ Store hash database to disk """
         print("Storing hash database to %s" % self.path)
         try:
-            hash_file = open(self.path, 'w')
+            hash_file = open(self.path, 'wb')
             pickle.dump(self.database, hash_file)
             hash_file.close()
         except IOError:
@@ -52,7 +52,7 @@ class HashDb(object):
     @classmethod
     def get_hash(cls, path):
         """ Calculate hash value for the given path """
-        hash_file = open(path, 'r')
+        hash_file = open(path, 'rb')
         hash_buffer = hash_file.read(4096)
         hash_file.close()
         return hashlib.md5(hash_buffer).hexdigest()

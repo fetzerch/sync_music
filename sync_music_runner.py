@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # sync_music - Sync music library to external device
 # Copyright (C) 2013-2015 Christian Fetzer

@@ -79,14 +79,12 @@ class Transcode(object):
     @classmethod
     def copy(cls, in_filepath, out_filepath):
         """ Copying audio file """
-        print("Copying from %s to %s" % (in_filepath.decode('utf-8'),
-                                         out_filepath.decode('utf-8')))
+        print("Copying from %s to %s" % (in_filepath, out_filepath))
         shutil.copy(in_filepath, out_filepath)
 
     def transcode(self, in_filepath, out_filepath):
         """ Transcode audio file """
-        print("Transcoding from %s to %s" % (in_filepath.decode('utf-8'),
-                                             out_filepath.decode('utf-8')))
+        print("Transcoding from %s to %s" % (in_filepath, out_filepath))
         try:
             audiotools.open(in_filepath).convert(out_filepath, self._format,
                                                  compression=self._compression)

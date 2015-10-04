@@ -17,19 +17,13 @@
 
 """ sync_music - Sync music library to external device """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 import os
-import sys
 import codecs
 import traceback
 import argparse
-import ConfigParser
+import configparser
 
 from multiprocessing import Pool
 
@@ -37,11 +31,7 @@ from . import util
 from .hashdb import HashDb
 from .actions import Copy
 from .actions import Skip
-from .transcode import Transcode  # uses python2 libs
-
-# Fix codecs errors when LC_ALL is set to C
-UTF8WRITER = codecs.getwriter('utf8')
-sys.stdout = UTF8WRITER(sys.stdout)
+from .transcode import Transcode
 
 ARGS = None
 HASH_DB = None
@@ -60,11 +50,10 @@ def process_file(current_file):
     if out_filename is not None:
         out_filename = util.correct_path_fat32(out_filename)
         print("%4d/%4d: %s %s to %s" % (file_index, total_files, action.name,
-                                        in_filename.decode('utf-8'),
-                                        out_filename.decode('utf-8')))
+                                        in_filename, out_filename))
     else:
         print("%4d/%4d: %s %s" % (file_index, total_files, action.name,
-                                  in_filename.decode('utf-8')))
+                                  in_filename))
         return None
 
     in_filepath = os.path.join(ARGS.audio_src, in_filename)
@@ -98,7 +87,7 @@ def get_file_action(in_filename):
             return ACTION_COPY
         else:
             return ACTION_TRANSCODE
-    elif in_filename.decode('utf-8').endswith('folder.jpg'):
+    elif in_filename.endswith('folder.jpg'):
         return ACTION_COPY
     else:
         return ACTION_SKIP
@@ -180,7 +169,7 @@ def sync_playlists():
 
 def sync_playlist(filename):
     """ Sync playlist """
-    print("Syncing playlist %s" % filename.decode('utf-8'))
+    print("Syncing playlist %s" % filename)
     srcpath = os.path.join(ARGS.playlist_src, filename)
     destpath = os.path.join(ARGS.audio_dest, filename)
 
@@ -193,13 +182,13 @@ def sync_playlist(filename):
     for line in in_file.read().splitlines():
         if not line.startswith('#EXT'):
             in_filename = os.path.relpath(line, ARGS.audio_src)
-            in_filename = in_filename.encode('utf-8')
+            in_filename = in_filename
             if in_filename in HASH_DB.database:
                 out_filename = HASH_DB.database[in_filename][0]
             else:
                 print("Warning: File does not exist: %s" % in_filename)
                 continue
-            line = out_filename.decode('utf-8')
+            line = out_filename
             line = line.replace('/', '\\')
         line = line + '\r\n'
         out_file.write(line)
@@ -221,11 +210,11 @@ def load_settings():
     # Read default settings from config file
     if args.config_file is None:
         args.config_file = util.makepath('~/.sync_music')
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config.read([args.config_file])
     try:
         defaults = dict(config.items("Defaults"))
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         defaults = {}
 
     # ArgumentParser 2: Get rest of the arguments

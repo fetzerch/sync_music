@@ -59,7 +59,7 @@ def query_yes_no(question):
     """ Ask a yes/no question, yes being the default """
     while 1:
         sys.stdout.write(question + ' [Y/n]: ')
-        choice = raw_input().lower()
+        choice = input().lower()
         if choice == '':
             return True
         try:
