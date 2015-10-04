@@ -312,6 +312,6 @@ if __name__ == '__main__':
 
     HASH_DB.load()
     sync_audio()
+    HASH_DB.store()
     if ARGS.playlist_src:
         sync_playlists()
-    HASH_DB.store()
