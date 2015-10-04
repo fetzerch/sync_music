@@ -25,7 +25,7 @@ import traceback
 import argparse
 import configparser
 
-from multiprocessing import Pool
+from multiprocessing import Pool  # pylint: disable=E0611
 
 from . import util
 from .hashdb import HashDb
