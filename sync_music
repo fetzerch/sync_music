@@ -128,7 +128,6 @@ def sync_audio():
     files = [(f, get_file_action(f),
              os.path.getmtime(os.path.join(ARGS.audio_src, f)))
              for f in util.list_all_files(ARGS.audio_src)]
-    files.sort(key=lambda f: f[1], reverse=True)
     files = [(index, len(files), f[0], f[1])
              for index, f in enumerate(files, 1)]
     if len(files) == 0:
