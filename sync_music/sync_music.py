@@ -219,7 +219,7 @@ def load_settings():
 
     # ArgumentParser 2: Get rest of the arguments
     parser = argparse.ArgumentParser(parents=[config_parser])
-    parser.set_defaults(**defaults)  # pylint: disable=W0142
+    parser.set_defaults(**defaults)
     parser.add_argument('--audio-src', type=str, nargs='?',
                         help="Folder containing the audio sources")
     parser.add_argument('--audio-dest', type=str, nargs='?',
