@@ -64,6 +64,8 @@
             mkdir $WORKSPACE/build
             cd $WORKSPACE/sources
 
+            mdl $WORKSPACE/sources | tee $WORKSPACE/build/markdownlint.log
+
             tox -e flake8 | tee $WORKSPACE/build/flake8.log
             tox -e pylint | tee $WORKSPACE/build/pylint.log
 
@@ -79,6 +81,8 @@
         - warnings:
             run-always: true
             workspace-file-scanners:
+                - file-pattern: build/markdownlint.log
+                  scanner: markdownlint
                 - file-pattern: build/flake8.log
                   scanner: Pep8
                 - file-pattern: build/pylint.log
