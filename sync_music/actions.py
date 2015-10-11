@@ -49,6 +49,6 @@ class Skip(object):
         return None
 
     @classmethod
-    def execute(cls, in_filepath, out_filepath):
+    def execute(cls, in_filepath, out_filepath):  # pragma: no cover
         """ Executes action """
         pass
