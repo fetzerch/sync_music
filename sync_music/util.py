@@ -55,7 +55,7 @@ def correct_path_fat32(filename):
     return re.sub(r'[\\|:|*|?|"|<|>|\|]', '_', filename)
 
 
-def query_yes_no(question):
+def query_yes_no(question):  # pragma: no cover
     """ Ask a yes/no question, yes being the default """
     while 1:
         sys.stdout.write(question + ' [Y/n]: ')

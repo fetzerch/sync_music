@@ -68,6 +68,10 @@
 
             tox -e flake8 | tee $WORKSPACE/build/flake8.log
             tox -e pylint | tee $WORKSPACE/build/pylint.log
+            tox -e py34-cover -- \
+                --with-xunit --xunit-file=$WORKSPACE/build/nosetests.xml \
+                --cover-xml --cover-xml-file=$WORKSPACE/build/coverage.xml \
+                | tee $WORKSPACE/build/py34-cover.log
 
 
 # ----- Publisher -------------------------------------------------------------
@@ -90,6 +94,19 @@
             total-thresholds:
                 unstable:
                     total-all: 0
+        - junit:
+            results: build/nosetests.xml
+            test-stability: true
+        - cobertura:
+            report-file: build/coverage.xml
+            fail-no-reports: true
+            targets:
+                - files:
+                    failing: 10000000
+                - line:
+                    failing: 10000000
+                - conditional:
+                    failing: 10000000
 
 
 # ----- Parameter -------------------------------------------------------------

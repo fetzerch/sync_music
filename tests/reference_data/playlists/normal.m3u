@@ -1,0 +1,8 @@
+#EXTM3U
+tests/reference_data/regular/stripped_flac.flac
+tests/reference_data/regular/stripped_mp3.mp3
+tests/reference_data/regular/stripped_ogg.ogg
+tests/reference_data/regular/withtags_flac.flac
+tests/reference_data/regular/withtags_mp3.mp3
+tests/reference_data/regular/withtags_ogg.ogg
+tests/reference_data/regular/nonexistentfile.mp3

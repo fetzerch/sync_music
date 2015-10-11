@@ -298,7 +298,7 @@ def load_settings(arguments=None):
     return settings
 
 
-def main():
+def main():  # pragma: no cover
     """ sync_music - Sync music library to external device """
     args = load_settings()
     sync_music = SyncMusic(args)
