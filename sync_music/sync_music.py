@@ -282,6 +282,9 @@ def load_settings(arguments=None):
         if settings.playlist_src is not None:
             paths.append('playlist_src')
         settings_dict = vars(settings)
+        if settings_dict['audio_dest']:
+            util.ensure_directory_exists(
+                util.makepath(settings_dict['audio_dest']))
         for path in paths:
             settings_dict[path] = util.makepath(settings_dict[path])
             if not os.path.isdir(settings_dict[path]):
