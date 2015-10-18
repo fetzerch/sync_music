@@ -50,6 +50,15 @@
             browser: gitlab
             browser-url: http://10.0.1.12/tools/sync_music
 
+- scm:
+    name: scm-github
+    scm:
+        - git:
+            url: https://github.com/fetzerch/sync_music.git
+            basedir: sources
+            browser: githubweb
+            browser-url: https://github.com/fetzerch/sync_music
+
 
 # ----- Builder ---------------------------------------------------------------
 
@@ -139,3 +148,15 @@
         - build-tox
     publishers:
         - publish-default
+
+- job:
+    name: sync_music_github
+    scm:
+        - scm-github
+    triggers:
+        - github
+    builders:
+        - build-tox
+    publishers:
+        - publish-default
+        - github-notifier
