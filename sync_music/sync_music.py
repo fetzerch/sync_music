@@ -1,7 +1,5 @@
-#!/usr/bin/env python2
-
 # music_sync - Sync music library to external device
-# Copyright (C) 2013 Christian Fetzer
+# Copyright (C) 2013-2015 Christian Fetzer
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,6 +22,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+__version__ = '0.1.0'
+
 import os
 import sys
 import codecs
@@ -33,15 +33,21 @@ import ConfigParser
 
 from multiprocessing import Pool
 
-import util
-from hashdb import HashDb
-from actions import Copy
-from actions import Skip
-from transcode import Transcode  # uses python2 libs
+from . import util
+from .hashdb import HashDb
+from .actions import Copy
+from .actions import Skip
+from .transcode import Transcode  # uses python2 libs
 
 # Fix codecs errors when LC_ALL is set to C
 UTF8WRITER = codecs.getwriter('utf8')
 sys.stdout = UTF8WRITER(sys.stdout)
+
+ARGS = None
+HASH_DB = None
+ACTION_SKIP = None
+ACTION_TRANSCODE = None
+ACTION_COPY = None
 
 
 def process_file(current_file):
@@ -279,9 +285,11 @@ def load_settings():
     return settings
 
 
-if __name__ == '__main__':
+def main():
+    """ sync_music - Sync music library to external device """
     print(__doc__)
     print("")
+    global ARGS
     ARGS = load_settings()
     print("Settings:")
     print(" - audio-src:  %s" % ARGS.audio_src)
@@ -295,15 +303,19 @@ if __name__ == '__main__':
     print("")
 
     # Globals
+    global ACTION_COPY
     ACTION_COPY = Copy()
+    global ACTION_SKIP
     ACTION_SKIP = Skip()
     if not ARGS.force_copy:
+        global ACTION_TRANSCODE
         ACTION_TRANSCODE = Transcode(
             transcode=not ARGS.tags_only,
             copy_tags=not ARGS.transcode_only,
             composer_hack=ARGS.albumartist_hack,
             discnumber_hack=ARGS.discnumber_hack,
             tracknumber_hack=ARGS.tracknumber_hack)
+    global HASH_DB
     HASH_DB = HashDb(os.path.join(ARGS.audio_dest, 'sync_music.db'))
 
     if (not ARGS.batch and not util.query_yes_no("Do you want to continue?")):

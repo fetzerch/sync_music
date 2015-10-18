@@ -1,5 +1,5 @@
 # sync_music - Sync music library to external device
-# Copyright (C) 2013 Christian Fetzer
+# Copyright (C) 2013-2015 Christian Fetzer
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,9 +20,6 @@
 import os
 import sys
 import re
-
-import distutils.util
-from distutils.version import StrictVersion
 
 
 def makepath(path):
@@ -66,22 +63,6 @@ def query_yes_no(question):
         if choice == '':
             return True
         try:
-            return distutils.util.strtobool(choice)
+            return choice.lower() in ['true', '1', 't', 'y', 'yes']
         except ValueError:
             sys.stdout.write("Valid answers: 'yes' or 'no'\n")
-
-
-def module_exists(module_name, minversion, version_attribute='__version__'):
-    """ Check if the given Python module exists in the specified version """
-    try:
-        module = __import__(module_name)
-        version = module.__dict__[version_attribute]
-        if StrictVersion(version) < StrictVersion(minversion):
-            raise ImportError("Incompatible version for %s, "
-                              "minimum supported version %s, "
-                              "found version %s" %
-                              (module_name, minversion, version))
-        return True
-    except ImportError as err:
-        print("Error: %s" % err)
-        return False

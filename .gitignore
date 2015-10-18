@@ -2,3 +2,6 @@
 __pycache__
 tags
 lib
+
+.tox
+*.egg-info
