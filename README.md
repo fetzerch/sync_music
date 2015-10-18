@@ -21,20 +21,22 @@ Besides audio files, sync_music is also able to export M3U playlists to
 the destination folder. Absolute paths are hereby replaced with relative
 paths in addition to the FAT32 filename adaptations.
 
-
 Dependencies
 ------------
-- Python 2.7
-- Python Audio Tools (for transcoding to MP3)
-- Mutagen >= 1.22 (for tag manipulation)
 
+- Python 3.4
+- Python Audio Tools >= 3.0 (for transcoding to MP3)
+- Mutagen >= 1.29 (for tag manipulation)
+
+Installation
+------------
+
+    pip3 install --process-dependency-links sync_music.zip
 
 Usage
 -----
 
-```
-$ sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER>
-```
+    sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER>
 
 M3U Playlist syncing can be enabled by specifying the path to the
 playlist with the `--playlist-src=<FOLDER>` parameter.
@@ -42,7 +44,7 @@ playlist with the `--playlist-src=<FOLDER>` parameter.
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
-enabled by the `--albumartist-hack` 
+enabled by the `--albumartist-hack`
 
 Some media players don't properly support disc number tags with tracks numbered
 starting with 1 for every disc. The user typically wants to group them by disc
@@ -57,9 +59,9 @@ track total is removed from the track number field.
 Call sync_music with `--help` to get a full list of supported command
 line parameters.
 
-
 License
 -------
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or

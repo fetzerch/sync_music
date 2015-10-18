@@ -64,8 +64,10 @@
             mkdir $WORKSPACE/build
             cd $WORKSPACE/sources
 
+            mdl $WORKSPACE/sources | tee $WORKSPACE/build/markdownlint.log
+
             tox -e flake8 | tee $WORKSPACE/build/flake8.log
-            tox -e py27 | tee $WORKSPACE/build/py27.log
+            tox -e pylint | tee $WORKSPACE/build/pylint.log
 
 
 # ----- Publisher -------------------------------------------------------------
@@ -79,9 +81,11 @@
         - warnings:
             run-always: true
             workspace-file-scanners:
+                - file-pattern: build/markdownlint.log
+                  scanner: markdownlint
                 - file-pattern: build/flake8.log
                   scanner: Pep8
-                - file-pattern: build/py27.log
+                - file-pattern: build/pylint.log
                   scanner: PyLint
             total-thresholds:
                 unstable:

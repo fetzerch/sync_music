@@ -24,10 +24,11 @@ import audiotools
 import mutagen
 
 
-class Transcode(object):
+class Transcode(object):  # pylint: disable=R0902
     """ Transcodes audio files """
 
-    def __init__(self, transcode=True, copy_tags=True,
+    def __init__(self,  # pylint: disable=R0913
+                 transcode=True, copy_tags=True,
                  composer_hack=False, discnumber_hack=False,
                  tracknumber_hack=False):
         self.name = "Processing"
@@ -79,14 +80,12 @@ class Transcode(object):
     @classmethod
     def copy(cls, in_filepath, out_filepath):
         """ Copying audio file """
-        print("Copying from %s to %s" % (in_filepath.decode('utf-8'),
-                                         out_filepath.decode('utf-8')))
+        print("Copying from %s to %s" % (in_filepath, out_filepath))
         shutil.copy(in_filepath, out_filepath)
 
     def transcode(self, in_filepath, out_filepath):
         """ Transcode audio file """
-        print("Transcoding from %s to %s" % (in_filepath.decode('utf-8'),
-                                             out_filepath.decode('utf-8')))
+        print("Transcoding from %s to %s" % (in_filepath, out_filepath))
         try:
             audiotools.open(in_filepath).convert(out_filepath, self._format,
                                                  compression=self._compression)
