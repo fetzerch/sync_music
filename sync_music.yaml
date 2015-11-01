@@ -23,9 +23,9 @@
     name: global
     project-type: freestyle
     concurrent: true
-    logrotate:
-        numToKeep: 10
     properties:
+        - build-discarder:
+            numToKeep: 10
         - sidebar:
             url: lastCompletedBuild/testReport
             text: Test Result
@@ -138,16 +138,21 @@
 
 - job:
     name: sync_music
+    properties:
+        - gitlab:
+            connection: https://10.0.1.12
     parameters:
         - gitlab-parameters
     scm:
         - scm-git
     triggers:
-        - gitlab
+        - gitlab:
+            add-ci-message: true
     builders:
         - build-tox
     publishers:
         - publish-default
+        - gitlab-notifier
 
 - job:
     name: sync_music_github
