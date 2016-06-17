@@ -24,7 +24,7 @@ paths in addition to the FAT32 filename adaptations.
 Dependencies
 ------------
 
-- Python 3.4
+- Python 3.5
 - Python Audio Tools >= 3.0 (for transcoding to MP3)
 - Mutagen >= 1.29 (for tag manipulation)
 

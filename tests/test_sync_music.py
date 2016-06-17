@@ -20,9 +20,9 @@
 import os
 import shutil
 
+from unittest.mock import patch
 from nose.tools import eq_
 from nose.tools import raises
-from unittest.mock import patch
 
 from sync_music.sync_music import SyncMusic
 from sync_music.sync_music import load_settings
@@ -187,7 +187,8 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         """ Test reference folder with mocked random exception """
         with patch('sync_music.transcode.Transcode.execute',
                    side_effect=Exception('Mocked exception')):
-            self._execute_sync_music(output_files=['sync_music.db'])
+            self._execute_sync_music(
+                output_files=['sync_music.db', 'folder.jpg'])
         with patch('sync_music.transcode.Transcode.execute',
                    side_effect=IOError('Mocked exception')):
             self._execute_sync_music(

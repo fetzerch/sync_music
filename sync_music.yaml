@@ -77,10 +77,10 @@
 
             tox -e flake8 | tee $WORKSPACE/build/flake8.log
             tox -e pylint | tee $WORKSPACE/build/pylint.log
-            tox -e py34-cover -- \
+            tox -e py35-cover -- \
                 --with-xunit --xunit-file=$WORKSPACE/build/nosetests.xml \
                 --cover-xml --cover-xml-file=$WORKSPACE/build/coverage.xml \
-                | tee $WORKSPACE/build/py34-cover.log
+                | tee $WORKSPACE/build/py35-cover.log
 
 
 # ----- Publisher -------------------------------------------------------------

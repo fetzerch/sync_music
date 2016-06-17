@@ -17,8 +17,6 @@
 
 """ sync_music - Sync music library to external device """
 
-__version__ = '0.2.0'
-
 import os
 import codecs
 import traceback
@@ -32,6 +30,8 @@ from .hashdb import HashDb
 from .actions import Copy
 from .actions import Skip
 from .transcode import Transcode
+
+__version__ = '0.2.0'
 
 
 class SyncMusic():
