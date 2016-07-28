@@ -144,7 +144,7 @@ class Transcode(object):  # pylint: disable=R0902
             'tracknumber': mutagen.id3.TRCK,
             'discnumber': mutagen.id3.TPOS,
         }
-        for tag in tagtable.keys():
+        for tag in tagtable:
             if tag in src_tags:
                 id3tag = tagtable[tag]
                 if tag == 'tracknumber':
