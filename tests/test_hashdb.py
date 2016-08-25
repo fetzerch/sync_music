@@ -38,13 +38,13 @@ class TestHashDb(object):
     @staticmethod
     def test_nonexistent():
         """ Test non existent file """
-        hashdb = HashDb('/nonexistent')
+        hashdb = HashDb('/proc/nonexistent')
         hashdb.load()
         eq_(hashdb.database, {})
 
     def test_writeerror(self):
         """ Test write error """
-        hashdb = HashDb('/nonexistent')
+        hashdb = HashDb('/proc/nonexistent')
         hashdb.database = self.data
         hashdb.store()
         hashdb.database = {}

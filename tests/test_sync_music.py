@@ -43,8 +43,8 @@ class TestSyncMusicSettings(object):
     @raises(SystemExit)
     def test_nonexistent():
         """ Tests loading of settings with incorrect paths """
-        argv = ['--audio-src', '/nonexistingpath',
-                '--audio-dest', '/nonexistingpath']
+        argv = ['--audio-src', '/proc/nonexistingpath',
+                '--audio-dest', '/proc/nonexistingpath']
         load_settings(argv)
 
     @staticmethod
