@@ -205,14 +205,18 @@ class SyncMusic():
         out_file = codecs.open(destpath, 'w', encoding='windows-1252')
         for line in in_file.read().splitlines():
             if not line.startswith('#EXT'):
-                in_filename = os.path.relpath(line, self._args.audio_src)
-                if in_filename in self._hashdb.database:
-                    out_filename = self._hashdb.database[in_filename][0]
-                else:
-                    print("Warning: File does not exist: %s" % in_filename)
+                in_filename = line
+                try:
+                    while True:
+                        if in_filename in self._hashdb.database:
+                            line = self._hashdb.database[in_filename][0]
+                            line = line.replace('/', '\\')
+                            break
+                        else:
+                            in_filename = in_filename.split('/', 1)[1]
+                except IndexError:
+                    print("Warning: File does not exist: %s" % line)
                     continue
-                line = out_filename
-                line = line.replace('/', '\\')
             line = line + '\r\n'
             out_file.write(line)
         in_file.close()
