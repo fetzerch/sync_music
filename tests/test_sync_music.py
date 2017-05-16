@@ -166,16 +166,16 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
             'sync_music.db', 'folder.jpg'
         ]
         self._execute_sync_music(output_files=output_files,
-                                 arguments=['--force-copy'])
+                                 arguments=['--file-mode=copy'])
 
     def test_reference_transcodeonly(self):
         """ Test reference folder with transcode only """
-        self._execute_sync_music(arguments=['--transcode-only'])
+        self._execute_sync_music(arguments=['--tag-mode=skip'])
 
     def test_reference_tagsonly(self):
         """ Test reference folder with tags only """
         self._execute_sync_music()
-        self._execute_sync_music(arguments=['-f', '--tags-only'])
+        self._execute_sync_music(arguments=['-f', '--file-mode=skip'])
 
     def test_reference_hacks(self):
         """ Test reference folder with hacks """

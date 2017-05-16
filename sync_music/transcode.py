@@ -22,6 +22,7 @@ import os
 import shutil
 
 import audiotools
+import audiotools.replaygain
 import mutagen
 
 
@@ -29,7 +30,7 @@ class Transcode(object):  # pylint: disable=R0902
     """ Transcodes audio files """
 
     def __init__(self,  # pylint: disable=R0913
-                 transcode=True, copy_tags=True,
+                 file_mode='auto', tag_mode='auto',
                  composer_hack=False, discnumber_hack=False,
                  tracknumber_hack=False):
         self.name = "Processing"
@@ -39,16 +40,16 @@ class Transcode(object):  # pylint: disable=R0902
         print("Transcoding settings:")
         print(" - Audiotools " + audiotools.VERSION)
         print(" - Mutagen " + mutagen.version_string)
-        self._transcode = transcode
-        if transcode:
+        self._file_mode = file_mode
+        self._tag_mode = tag_mode
+        if file_mode == 'auto':
             print(" - Converting to {} in quality {} "
                   "(LAME quality parameter; 0 best, 9 fastest)".format(
                       self._format.NAME, self._compression))
         else:
             print(" - Skipping transcoding")
 
-        self._copy_tags = copy_tags
-        if copy_tags:
+        if tag_mode in ['auto']:
             print(" - Copying tags")
         else:
             print(" - Skipping copying tags")
@@ -70,12 +71,13 @@ class Transcode(object):  # pylint: disable=R0902
 
     def execute(self, in_filepath, out_filepath):
         """ Executes action """
-        if self._transcode:
+        if self._file_mode == 'auto':
             if os.path.splitext(in_filepath)[1] != '.' + self._format.SUFFIX:
                 self.transcode(in_filepath, out_filepath)
             else:
                 self.copy(in_filepath, out_filepath)
-        if self._copy_tags:
+
+        if self._tag_mode == 'auto':
             self.copy_tags(in_filepath, out_filepath)
 
     @classmethod
@@ -88,10 +90,11 @@ class Transcode(object):  # pylint: disable=R0902
         """ Transcode audio file """
         print("Transcoding from {} to {}".format(in_filepath, out_filepath))
         try:
-            audiotools.open(in_filepath).convert(out_filepath, self._format,
-                                                 compression=self._compression)
+            audiotools.open(in_filepath).convert(
+                out_filepath, self._format, compression=self._compression)
         except audiotools.EncodingError as err:
-            raise IOError("Failed to transcode: {}".format(err))
+            raise IOError("Failed to transcode file {}: {}"
+                          .format(in_filepath, err))
 
     def copy_tags(self, in_filepath, out_filepath):
         """ Copy tags """

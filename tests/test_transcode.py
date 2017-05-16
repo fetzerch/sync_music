@@ -87,16 +87,16 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         self.execute_transcode(Transcode(),
                                in_filename=self.in_filename_mp3empty)
 
-    def test_transcode_notranscode(self):
-        """ Tests transcoding with transcoding (only update tags) """
+    def test_transcode_filesonly(self):
+        """ Tests transcoding with file processing only """
+        self.execute_transcode(Transcode(tag_mode='skip'))
+
+    def test_transcode_tagsonly(self):
+        """ Tests transcoding with tag processing only """
         shutil.copy(
             os.path.join(self.input_path, self.in_filename_mp3empty),
             os.path.join(self.output_path, self.out_filename))
-        self.execute_transcode(Transcode(transcode=False))
-
-    def test_transcode_nocopytags(self):
-        """ Tests transcoding without copying of tags """
-        self.execute_transcode(Transcode(copy_tags=False))
+        self.execute_transcode(Transcode(file_mode='skip'))
 
     def test_transcode_folderimage(self):
         """ Tests transcoding without folder image """
@@ -142,10 +142,10 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         shutil.copy(
             os.path.join(self.input_path, self.img_filename),
             os.path.join(self.output_path, self.out_filename))
-        self.execute_transcode(Transcode(transcode=False))
+        self.execute_transcode(Transcode(file_mode='skip'))
 
     @raises(IOError)
     def test_transcodingerror_format(self):
         """ Tests transcoding a non supported format """
-        self.execute_transcode(Transcode(transcode=True),
+        self.execute_transcode(Transcode(),
                                in_filename=self.in_filename_aiff)

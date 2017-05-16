@@ -62,6 +62,8 @@ Usage
 M3U Playlist syncing can be enabled by specifying the path to the
 playlist with the `--playlist-src=<FOLDER>` parameter.
 
+The operation mode can be changed with the `--file-mode` parameter.
+
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
