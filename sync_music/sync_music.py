@@ -227,8 +227,8 @@ def load_settings(arguments=None):
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False)
-    config_parser.add_argument("-c", "--config-file",
-                               help="Specify config file", metavar="FILE")
+    config_parser.add_argument('-c', '--config-file',
+                               help='Specify config file', metavar='FILE')
     args, remaining_argv = config_parser.parse_known_args(arguments)
 
     # Read default settings from config file
@@ -244,34 +244,36 @@ def load_settings(arguments=None):
     # ArgumentParser 2: Get rest of the arguments
     parser = argparse.ArgumentParser(parents=[config_parser])
     parser.set_defaults(**defaults)
-    parser.add_argument('--audio-src', type=str, nargs='?',
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {}'.format(__version__))
+    parser.add_argument('--audio-src', type=str,
                         help="Folder containing the audio sources")
-    parser.add_argument('--audio-dest', type=str, nargs='?',
+    parser.add_argument('--audio-dest', type=str,
                         help="Target directory for converted audio files")
-    parser.add_argument('--playlist-src', type=str, nargs='?',
+    parser.add_argument('--playlist-src', type=str,
                         help='Folder containing the source playlists')
 
     # Audio sync options
     parser.add_argument('-j', '--jobs', type=int, default=4,
                         help="Number of parallel jobs")
-    parser.add_argument('-f', '--force', action="store_true",
+    parser.add_argument('-f', '--force', action='store_true',
                         help="Rerun action even if the file has not changed")
-    parser.add_argument('-b', '--batch', action="store_true",
+    parser.add_argument('-b', '--batch', action='store_true',
                         help="Batch mode, no user input")
-    parser.add_argument('--force-copy', action="store_true",
+    parser.add_argument('--force-copy', action='store_true',
                         help="Run copy action instead of transcode action")
 
     # Optons for action transcode
-    parser.add_argument('--transcode-only', action="store_true",
+    parser.add_argument('--transcode-only', action='store_true',
                         help="Transcode but do not copy tags")
-    parser.add_argument('--tags-only', action="store_true",
+    parser.add_argument('--tags-only', action='store_true',
                         help="Do not transcode, "
                              "but copy tags for already existing files")
-    parser.add_argument('--albumartist-hack', action="store_true",
+    parser.add_argument('--albumartist-hack', action='store_true',
                         help="Write album artist into composer field")
-    parser.add_argument('--discnumber-hack', action="store_true",
+    parser.add_argument('--discnumber-hack', action='store_true',
                         help="Extend album field by disc number")
-    parser.add_argument('--tracknumber-hack', action="store_true",
+    parser.add_argument('--tracknumber-hack', action='store_true',
                         help="Remove track total from track number")
 
     # Parse
