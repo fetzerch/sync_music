@@ -99,9 +99,8 @@ class SyncMusic():
                 print("Error: %s" % err)
                 return
             return (in_filename, out_filename, hash_current)
-        else:
-            print("Skipping up to date file")
-            return None
+        print("Skipping up to date file")
+        return None
 
     def _get_file_action(self, in_filename):
         """ Determine the action for the given file """
@@ -109,12 +108,10 @@ class SyncMusic():
         if extension in ['.flac', '.ogg', '.mp3']:
             if self._args.force_copy:
                 return self._action_copy
-            else:
-                return self._action_transcode
+            return self._action_transcode
         elif in_filename.endswith('folder.jpg'):
             return self._action_copy
-        else:
-            return self._action_skip
+        return self._action_skip
 
     def _clean_up_missing_files(self):
         """ Remove files in the destination, where the source file doesn't
@@ -149,7 +146,7 @@ class SyncMusic():
                  for f in util.list_all_files(self._args.audio_src)]
         files = [(index, len(files), f[0], f[1])
                  for index, f in enumerate(files, 1)]
-        if len(files) == 0:
+        if not files:
             raise FileNotFoundError("No input files")
 
         # Cleanup files that does not exist any more

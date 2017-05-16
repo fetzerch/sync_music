@@ -109,8 +109,8 @@ class Transcode(object):  # pylint: disable=R0902
         # Tags are processed depending on their input format.
         if isinstance(in_file, mutagen.mp3.MP3):
             self.copy_id3_to_id3(in_file.tags, mp3_file.tags)
-        elif (isinstance(in_file, mutagen.flac.FLAC) or
-              isinstance(in_file, mutagen.oggvorbis.OggVorbis)):
+        elif (isinstance(in_file, (mutagen.flac.FLAC,
+                                   mutagen.oggvorbis.OggVorbis))):
             self.copy_vorbis_to_id3(in_file.tags, mp3_file.tags)
             self.copy_vorbis_picture_to_id3(in_file, mp3_file.tags)
         else:
