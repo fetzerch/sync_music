@@ -23,6 +23,9 @@ import re
 
 from setuptools import setup
 
+from sync_music.__init__ import verify_interpreter_version
+verify_interpreter_version()
+
 
 def read(*names, **kwargs):
     """ Read file relative to the directory where this file is located """
