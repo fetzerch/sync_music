@@ -31,7 +31,25 @@ Dependencies
 Installation
 ------------
 
-    pip3 install --process-dependency-links sync_music.zip
+The first step is to install Python Audio Tools which depends on a couple of
+native libraries and doesn't offer a PyPI package. On Ubuntu 16.04 or later
+there's an official package that can simply be installed using:
+
+    # apt install audiotools
+
+As an alternative Python Audio Tools can be installed from source after the
+necessary native libraries are installed.
+
+    # apt install python3-dev lame libmp3lame-dev libvorbis-dev
+    # pip3 install https://github.com/tuffy/python-audio-tools/archive/master.zip
+
+Then sync_music can be installed from PyPI with:
+
+    # pip3 install sync_music
+
+The following command installs the current development version:
+
+    # pip3 install https://github.com/fetzerch/sync_music/archive/master.zip
 
 Usage
 -----
