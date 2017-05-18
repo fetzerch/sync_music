@@ -1,3 +1,6 @@
+[![CircleCI Status](https://circleci.com/gh/fetzerch/sync_music.svg?style=shield)](https://circleci.com/gh/fetzerch/sync_music)
+[![Coverage Status](https://coveralls.io/repos/github/fetzerch/sync_music/badge.svg?branch=master)](https://coveralls.io/github/fetzerch/sync_music?branch=master)
+
 sync_music - Sync music library to external devices
 ===================================================
 
