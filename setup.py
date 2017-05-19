@@ -56,7 +56,7 @@ setup(
     author='Christian Fetzer',
     author_email='fetzer.ch@gmail.com',
     url=URL,
-    download_url='%s/archive/sync_music-%s.tar.gz' % (URL, VERSION),
+    download_url='{}/archive/sync_music-{}.tar.gz'.format(URL, VERSION),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',

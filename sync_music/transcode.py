@@ -40,9 +40,9 @@ class Transcode(object):  # pylint: disable=R0902
         print(" - Mutagen " + mutagen.version_string)
         self._transcode = transcode
         if transcode:
-            print(" - Converting to %s in quality %s "
-                  "(LAME quality parameter; 0 best, 9 fastest)" %
-                  (self._format.NAME, self._compression))
+            print(" - Converting to {} in quality {} "
+                  "(LAME quality parameter; 0 best, 9 fastest)".format(
+                      self._format.NAME, self._compression))
         else:
             print(" - Skipping transcoding")
 
@@ -80,17 +80,17 @@ class Transcode(object):  # pylint: disable=R0902
     @classmethod
     def copy(cls, in_filepath, out_filepath):
         """ Copying audio file """
-        print("Copying from %s to %s" % (in_filepath, out_filepath))
+        print("Copying from {} to {}".format(in_filepath, out_filepath))
         shutil.copy(in_filepath, out_filepath)
 
     def transcode(self, in_filepath, out_filepath):
         """ Transcode audio file """
-        print("Transcoding from %s to %s" % (in_filepath, out_filepath))
+        print("Transcoding from {} to {}".format(in_filepath, out_filepath))
         try:
             audiotools.open(in_filepath).convert(out_filepath, self._format,
                                                  compression=self._compression)
         except audiotools.EncodingError as err:
-            raise IOError("Failed to transcode: %s" % err)
+            raise IOError("Failed to transcode: {}".format(err))
 
     def copy_tags(self, in_filepath, out_filepath):
         """ Copy tags """
@@ -150,8 +150,9 @@ class Transcode(object):  # pylint: disable=R0902
                 if tag == 'tracknumber':
                     track = src_tags['tracknumber'][0]
                     if 'tracktotal' in src_tags:
-                        track = "%s/%s" % (track, src_tags['tracktotal'][0])
-                    dest_tags.add(id3tag(encoding=3, text="%s" % track))
+                        track = '{}/{}'.format(track,
+                                               src_tags['tracktotal'][0])
+                    dest_tags.add(id3tag(encoding=3, text='{}'.format(track)))
                 else:  # All other tags
                     dest_tags.add(id3tag(encoding=3, text=src_tags[tag]))
 
