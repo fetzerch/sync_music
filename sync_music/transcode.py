@@ -152,7 +152,12 @@ class Transcode(object):  # pylint: disable=R0902
                     if 'tracktotal' in src_tags:
                         track = '{}/{}'.format(track,
                                                src_tags['tracktotal'][0])
-                    dest_tags.add(id3tag(encoding=3, text='{}'.format(track)))
+                    dest_tags.add(id3tag(encoding=3, text=track))
+                elif tag == 'discnumber':
+                    disc = src_tags['discnumber'][0]
+                    if 'disctotal' in src_tags:
+                        disc = '{}/{}'.format(disc, src_tags['disctotal'][0])
+                    dest_tags.add(id3tag(encoding=3, text=disc))
                 else:  # All other tags
                     dest_tags.add(id3tag(encoding=3, text=src_tags[tag]))
 
