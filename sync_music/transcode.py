@@ -17,6 +17,7 @@
 
 """ Transcode action """
 
+import base64
 import os
 import shutil
 
@@ -180,16 +181,22 @@ class Transcode(object):  # pylint: disable=R0902
     @classmethod
     def copy_vorbis_picture_to_id3(cls, in_file, dest_tags):
         """ Copy pictures from vorbis comments to ID3 format """
-        # Vorbis files have their image in METADATA_BLOCK_PICTURE
-        try:
-            for picture in in_file.pictures:
-                dest_tags.add(mutagen.id3.APIC(encoding=3,
-                                               desc=picture.desc,
-                                               data=picture.data,
-                                               type=picture.type,
-                                               mime=picture.mime))
+        pictures = []
+        try:  # Flac
+            pictures.extend(in_file.pictures)
         except AttributeError:
             pass
+
+        if 'METADATA_BLOCK_PICTURE' in in_file.tags:  # OggVorbis
+            for data in in_file.tags['METADATA_BLOCK_PICTURE']:
+                pictures.append(mutagen.flac.Picture(
+                    base64.b64decode(data)))
+        for picture in pictures:
+            dest_tags.add(mutagen.id3.APIC(encoding=3,
+                                           desc=picture.desc,
+                                           data=picture.data,
+                                           type=picture.type,
+                                           mime=picture.mime))
 
     @classmethod
     def copy_id3_to_id3(cls, src_tags, dest_tags):
