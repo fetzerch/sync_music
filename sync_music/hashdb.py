@@ -32,22 +32,22 @@ class HashDb(object):
     def load(self):
         """ Load hash database to disk """
         if os.path.exists(self.path):
-            print("Loading hash database from %s" % self.path)
+            print("Loading hash database from {}".format(self.path))
             hash_file = open(self.path, 'rb')
             self.database = pickle.load(hash_file, encoding="utf-8")
             hash_file.close()
         else:
-            print("Failed to load hash database from %s" % self.path)
+            print("Failed to load hash database from {}".format(self.path))
 
     def store(self):
         """ Store hash database to disk """
-        print("Storing hash database to %s" % self.path)
+        print("Storing hash database to {}".format(self.path))
         try:
             hash_file = open(self.path, 'wb')
             pickle.dump(self.database, hash_file)
             hash_file.close()
         except IOError:
-            print("Failed to write hash database to %s" % self.path)
+            print("Failed to write hash database to {}".format(self.path))
 
     @classmethod
     def get_hash(cls, path):

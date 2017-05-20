@@ -44,10 +44,10 @@ class SyncMusic():
         self._args = args
         self._hashdb = HashDb(os.path.join(args.audio_dest, 'sync_music.db'))
         print("Settings:")
-        print(" - audio-src:  %s" % args.audio_src)
-        print(" - audio-dest: %s" % args.audio_dest)
+        print(" - audio-src:  {}".format(args.audio_src))
+        print(" - audio-dest: {}".format(args.audio_dest))
         if args.playlist_src:
-            print(" - playlist-src: %s" % args.playlist_src)
+            print(" - playlist-src: {}".format(args.playlist_src))
         if args.force:
             print(" - force: Process also up to date files")
         if args.force_copy:
@@ -72,12 +72,12 @@ class SyncMusic():
         out_filename = action.get_out_filename(in_filename)
         if out_filename is not None:
             out_filename = util.correct_path_fat32(out_filename)
-            print("%4d/%4d: %s %s to %s" %
-                  (file_index, total_files, action.name,
-                   in_filename, out_filename))
+            print("{:04}/{:04}: {} {} to {}".format(
+                file_index, total_files, action.name,
+                in_filename, out_filename))
         else:
-            print("%4d/%4d: %s %s" %
-                  (file_index, total_files, action.name, in_filename))
+            print("{:04}/{:04}: {} {}".format(
+                file_index, total_files, action.name, in_filename))
             return None
 
         in_filepath = os.path.join(self._args.audio_src, in_filename)
@@ -96,7 +96,7 @@ class SyncMusic():
             try:
                 action.execute(in_filepath, out_filepath)
             except IOError as err:
-                print("Error: %s" % err)
+                print("Error: {}".format(err))
                 return
             return (in_filename, out_filename, hash_current)
         print("Skipping up to date file")
@@ -126,13 +126,13 @@ class SyncMusic():
             if not os.path.exists(in_filepath):
                 if os.path.exists(out_filepath):
                     result = util.query_yes_no(
-                        "File %s does not exist, do you want to remove %s"
-                        % (in_filename, out_filename))
+                        "File {} does not exist, do you want to remove {}"
+                        .format(in_filename, out_filename))
                     if result:
                         try:
                             os.remove(out_filepath)
                         except OSError as err:
-                            print("Failed to remove file %s", err)
+                            print("Failed to remove file {}".format(err))
                 if not os.path.exists(out_filepath):
                     del self._hashdb.database[in_filename]
 
@@ -186,11 +186,11 @@ class SyncMusic():
                             os.path.normpath(
                                 os.path.join(relpath, filename)))
                     except IOError as err:
-                        print("Error: %s" % err)
+                        print("Error: {}".format(err))
 
     def _sync_playlist(self, filename):
         """ Sync playlist """
-        print("Syncing playlist %s" % filename)
+        print("Syncing playlist {}".format(filename))
         srcpath = os.path.join(self._args.playlist_src, filename)
         destpath = os.path.join(self._args.audio_dest, filename)
 
@@ -212,7 +212,7 @@ class SyncMusic():
                         else:
                             in_filename = in_filename.split('/', 1)[1]
                 except IndexError:
-                    print("Warning: File does not exist: %s" % line)
+                    print("Warning: File does not exist: {}".format(line))
                     continue
             line = line + '\r\n'
             out_file.write(line)
@@ -291,9 +291,10 @@ def load_settings(arguments=None):
         for path in paths:
             settings_dict[path] = util.makepath(settings_dict[path])
             if not os.path.isdir(settings_dict[path]):
-                raise IOError("%s is not a directory" % settings_dict[path])
+                raise IOError("{} is not a directory".format(
+                    settings_dict[path]))
     except AttributeError:
-        parser.error("arguments audio-src and audio-dest are required and "
+        parser.error("Arguments audio-src and audio-dest are required and "
                      "need to be accessible folders")
     except IOError as err:
         parser.error(err)
@@ -312,7 +313,7 @@ def main():  # pragma: no cover
     try:
         sync_music.sync_audio()
     except FileNotFoundError as err:
-        print("Error: %s" % err)
+        print("Error: {}".format(err))
         exit(1)
 
     if args.playlist_src:

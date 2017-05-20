@@ -17,6 +17,7 @@
 
 """ Transcode action """
 
+import base64
 import os
 import shutil
 
@@ -40,9 +41,9 @@ class Transcode(object):  # pylint: disable=R0902
         print(" - Mutagen " + mutagen.version_string)
         self._transcode = transcode
         if transcode:
-            print(" - Converting to %s in quality %s "
-                  "(LAME quality parameter; 0 best, 9 fastest)" %
-                  (self._format.NAME, self._compression))
+            print(" - Converting to {} in quality {} "
+                  "(LAME quality parameter; 0 best, 9 fastest)".format(
+                      self._format.NAME, self._compression))
         else:
             print(" - Skipping transcoding")
 
@@ -80,17 +81,17 @@ class Transcode(object):  # pylint: disable=R0902
     @classmethod
     def copy(cls, in_filepath, out_filepath):
         """ Copying audio file """
-        print("Copying from %s to %s" % (in_filepath, out_filepath))
+        print("Copying from {} to {}".format(in_filepath, out_filepath))
         shutil.copy(in_filepath, out_filepath)
 
     def transcode(self, in_filepath, out_filepath):
         """ Transcode audio file """
-        print("Transcoding from %s to %s" % (in_filepath, out_filepath))
+        print("Transcoding from {} to {}".format(in_filepath, out_filepath))
         try:
             audiotools.open(in_filepath).convert(out_filepath, self._format,
                                                  compression=self._compression)
         except audiotools.EncodingError as err:
-            raise IOError("Failed to transcode: %s" % err)
+            raise IOError("Failed to transcode: {}".format(err))
 
     def copy_tags(self, in_filepath, out_filepath):
         """ Copy tags """
@@ -143,6 +144,16 @@ class Transcode(object):  # pylint: disable=R0902
             'date': mutagen.id3.TDRC,
             'tracknumber': mutagen.id3.TRCK,
             'discnumber': mutagen.id3.TPOS,
+            'MUSICBRAINZ_TRACKID': 'http://musicbrainz.org',
+            'MUSICBRAINZ_ARTISTID': 'MusicBrainz Artist Id',
+            'MUSICBRAINZ_ALBUMARTISTID': 'MusicBrainz Album Artist Id',
+            'MUSICBRAINZ_RELEASEGROUPID': 'MusicBrainz Release Group Id',
+            'MUSICBRAINZ_ALBUMID': 'MusicBrainz Album Id',
+            'MUSICBRAINZ_RELEASETRACKID': 'MusicBrainz Release Track Id',
+            'replaygain_album_gain': 'replaygain_album_gain',
+            'replaygain_album_peak': 'replaygain_album_peak',
+            'replaygain_track_gain': 'replaygain_track_gain',
+            'replaygain_track_peak': 'replaygain_track_peak'
         }
         for tag in tagtable:
             if tag in src_tags:
@@ -150,24 +161,42 @@ class Transcode(object):  # pylint: disable=R0902
                 if tag == 'tracknumber':
                     track = src_tags['tracknumber'][0]
                     if 'tracktotal' in src_tags:
-                        track = "%s/%s" % (track, src_tags['tracktotal'][0])
-                    dest_tags.add(id3tag(encoding=3, text="%s" % track))
+                        track = '{}/{}'.format(track,
+                                               src_tags['tracktotal'][0])
+                    dest_tags.add(id3tag(encoding=3, text=track))
+                elif tag == 'discnumber':
+                    disc = src_tags['discnumber'][0]
+                    if 'disctotal' in src_tags:
+                        disc = '{}/{}'.format(disc, src_tags['disctotal'][0])
+                    dest_tags.add(id3tag(encoding=3, text=disc))
+                elif tag == 'MUSICBRAINZ_TRACKID':
+                    dest_tags.add(mutagen.id3.UFID(
+                        owner=id3tag, data=src_tags[tag][0].encode()))
+                elif isinstance(id3tag, str):  # TXXX tags
+                    dest_tags.add(mutagen.id3.TXXX(encoding=3, desc=id3tag,
+                                                   text=src_tags[tag]))
                 else:  # All other tags
                     dest_tags.add(id3tag(encoding=3, text=src_tags[tag]))
 
     @classmethod
     def copy_vorbis_picture_to_id3(cls, in_file, dest_tags):
         """ Copy pictures from vorbis comments to ID3 format """
-        # Vorbis files have their image in METADATA_BLOCK_PICTURE
-        try:
-            for picture in in_file.pictures:
-                dest_tags.add(mutagen.id3.APIC(encoding=3,
-                                               desc=picture.desc,
-                                               data=picture.data,
-                                               type=picture.type,
-                                               mime=picture.mime))
+        pictures = []
+        try:  # Flac
+            pictures.extend(in_file.pictures)
         except AttributeError:
             pass
+
+        if 'METADATA_BLOCK_PICTURE' in in_file.tags:  # OggVorbis
+            for data in in_file.tags['METADATA_BLOCK_PICTURE']:
+                pictures.append(mutagen.flac.Picture(
+                    base64.b64decode(data)))
+        for picture in pictures:
+            dest_tags.add(mutagen.id3.APIC(encoding=3,
+                                           desc=picture.desc,
+                                           data=picture.data,
+                                           type=picture.type,
+                                           mime=picture.mime))
 
     @classmethod
     def copy_id3_to_id3(cls, src_tags, dest_tags):
@@ -181,7 +210,17 @@ class Transcode(object):  # pylint: disable=R0902
             'TDRC',
             'TRCK',
             'TPOS',
-            'APIC:'
+            'APIC:',
+            'UFID:http://musicbrainz.org',
+            'TXXX:MusicBrainz Artist Id',
+            'TXXX:MusicBrainz Album Artist Id'
+            'TXXX:MusicBrainz Release Group Id',
+            'TXXX:MusicBrainz Album Id',
+            'TXXX:MusicBrainz Release Track Id',
+            'TXXX:replaygain_album_gain',
+            'TXXX:replaygain_album_peak',
+            'TXXX:replaygain_track_gain',
+            'TXXX:replaygain_track_peak'
         ]
         if src_tags is None:
             return
