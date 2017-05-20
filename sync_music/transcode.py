@@ -143,6 +143,16 @@ class Transcode(object):  # pylint: disable=R0902
             'date': mutagen.id3.TDRC,
             'tracknumber': mutagen.id3.TRCK,
             'discnumber': mutagen.id3.TPOS,
+            'MUSICBRAINZ_TRACKID': 'http://musicbrainz.org',
+            'MUSICBRAINZ_ARTISTID': 'MusicBrainz Artist Id',
+            'MUSICBRAINZ_ALBUMARTISTID': 'MusicBrainz Album Artist Id',
+            'MUSICBRAINZ_RELEASEGROUPID': 'MusicBrainz Release Group Id',
+            'MUSICBRAINZ_ALBUMID': 'MusicBrainz Album Id',
+            'MUSICBRAINZ_RELEASETRACKID': 'MusicBrainz Release Track Id',
+            'replaygain_album_gain': 'replaygain_album_gain',
+            'replaygain_album_peak': 'replaygain_album_peak',
+            'replaygain_track_gain': 'replaygain_track_gain',
+            'replaygain_track_peak': 'replaygain_track_peak'
         }
         for tag in tagtable:
             if tag in src_tags:
@@ -158,6 +168,12 @@ class Transcode(object):  # pylint: disable=R0902
                     if 'disctotal' in src_tags:
                         disc = '{}/{}'.format(disc, src_tags['disctotal'][0])
                     dest_tags.add(id3tag(encoding=3, text=disc))
+                elif tag == 'MUSICBRAINZ_TRACKID':
+                    dest_tags.add(mutagen.id3.UFID(
+                        owner=id3tag, data=src_tags[tag][0].encode()))
+                elif isinstance(id3tag, str):  # TXXX tags
+                    dest_tags.add(mutagen.id3.TXXX(encoding=3, desc=id3tag,
+                                                   text=src_tags[tag]))
                 else:  # All other tags
                     dest_tags.add(id3tag(encoding=3, text=src_tags[tag]))
 
@@ -187,7 +203,17 @@ class Transcode(object):  # pylint: disable=R0902
             'TDRC',
             'TRCK',
             'TPOS',
-            'APIC:'
+            'APIC:',
+            'UFID:http://musicbrainz.org',
+            'TXXX:MusicBrainz Artist Id',
+            'TXXX:MusicBrainz Album Artist Id'
+            'TXXX:MusicBrainz Release Group Id',
+            'TXXX:MusicBrainz Album Id',
+            'TXXX:MusicBrainz Release Track Id',
+            'TXXX:replaygain_album_gain',
+            'TXXX:replaygain_album_peak',
+            'TXXX:replaygain_track_gain',
+            'TXXX:replaygain_track_peak'
         ]
         if src_tags is None:
             return
