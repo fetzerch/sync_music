@@ -12,7 +12,9 @@ In normal operation mode, sync_music performs its synchronization tasks
 depending on the input file format. Music files in FLAC and Ogg Vorbis
 format are transcoded to MP3. MP3 audio files and other files are
 transferred unchanged. Filenames are adapted where necessary to comply
-with the FAT32 format.
+with the FAT32 format. If preferred, sync_music can also forcefully
+transcode all files in order to save disk space. Another operation mode
+applies volume normalization based on ReplayGain tags.
 
 Transcoding is a time consuming operation, therefore the first run of
 sync_music can take several minutes. In subsequent runs however, it will
@@ -43,7 +45,7 @@ there's an official package that can simply be installed using:
 As an alternative Python Audio Tools can be installed from source after the
 necessary native libraries are installed.
 
-    # apt install python3-dev lame libmp3lame-dev libvorbis-dev
+    # apt install python3-dev lame libmp3lame-dev libmpg123-dev libvorbis-dev
     # pip3 install https://github.com/tuffy/python-audio-tools/archive/master.zip
 
 Then sync_music can be installed from PyPI with:
@@ -61,6 +63,8 @@ Usage
 
 M3U Playlist syncing can be enabled by specifying the path to the
 playlist with the `--playlist-src=<FOLDER>` parameter.
+
+The operation mode can be changed with the `--file-mode` parameter.
 
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing

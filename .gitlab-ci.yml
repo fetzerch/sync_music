@@ -17,5 +17,5 @@ pylint:
 
 py35:
   script:
-    - apt-get update && apt-get install -y lame libmp3lame-dev libvorbis-dev
+    - apt-get update && apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
     - tox -e py35-cover

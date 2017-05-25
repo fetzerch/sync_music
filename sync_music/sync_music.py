@@ -48,16 +48,14 @@ class SyncMusic():
         print(" - audio-dest: {}".format(args.audio_dest))
         if args.playlist_src:
             print(" - playlist-src: {}".format(args.playlist_src))
-        if args.force:
-            print(" - force: Process also up to date files")
-        if args.force_copy:
-            print(" - force-copy: Copy files only")
+        print(" - file mode: {}".format(args.file_mode))
+        print(" - tag mode: {}".format(args.tag_mode))
         print("")
         self._action_copy = Copy()
         self._action_skip = Skip()
         self._action_transcode = Transcode(
-            transcode=not self._args.tags_only,
-            copy_tags=not self._args.transcode_only,
+            file_mode=self._args.file_mode,
+            tag_mode=self._args.tag_mode,
             composer_hack=self._args.albumartist_hack,
             discnumber_hack=self._args.discnumber_hack,
             tracknumber_hack=self._args.tracknumber_hack)
@@ -106,7 +104,7 @@ class SyncMusic():
         """ Determine the action for the given file """
         extension = os.path.splitext(in_filename)[1]
         if extension in ['.flac', '.ogg', '.mp3']:
-            if self._args.force_copy:
+            if self._args.file_mode == 'copy':
                 return self._action_copy
             return self._action_transcode
         elif in_filename.endswith('folder.jpg'):
@@ -228,7 +226,7 @@ def load_settings(arguments=None):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False)
     config_parser.add_argument('-c', '--config-file',
-                               help='Specify config file', metavar='FILE')
+                               help='specify config file', metavar='FILE')
     args, remaining_argv = config_parser.parse_known_args(arguments)
 
     # Read default settings from config file
@@ -247,34 +245,41 @@ def load_settings(arguments=None):
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {}'.format(__version__))
     parser.add_argument('--audio-src', type=str,
-                        help="Folder containing the audio sources")
+                        required='audio_src' not in defaults,
+                        help="folder containing the audio sources")
     parser.add_argument('--audio-dest', type=str,
-                        help="Target directory for converted audio files")
+                        required='audio_dest' not in defaults,
+                        help="target directory for converted audio files")
     parser.add_argument('--playlist-src', type=str,
-                        help='Folder containing the source playlists')
+                        help='folder containing the source playlists')
 
     # Audio sync options
     parser.add_argument('-j', '--jobs', type=int, default=4,
-                        help="Number of parallel jobs")
+                        help="number of parallel jobs")
     parser.add_argument('-f', '--force', action='store_true',
-                        help="Rerun action even if the file has not changed")
+                        help="rerun action even if the file has not changed")
     parser.add_argument('-b', '--batch', action='store_true',
-                        help="Batch mode, no user input")
-    parser.add_argument('--force-copy', action='store_true',
-                        help="Run copy action instead of transcode action")
+                        help="batch mode, no user input")
+
+    parser.add_argument('--file-mode', choices=['auto', 'transcode',
+                                                'replaygain', 'copy', 'skip'],
+                        default='auto',
+                        help="auto: copy MP3s, transcode others (default); "
+                             "transcode: transcode all files (slow); "
+                             "replaygain: transcode all files and apply "
+                             " ReplayGain normalization (slow); "
+                             "copy: copy all files; "
+                             "skip: skip processing files, but process tags")
+    parser.add_argument('--tag-mode', choices=['auto', 'skip'], default='auto',
+                        help="auto: process tags; skip: skip processing tags")
 
     # Optons for action transcode
-    parser.add_argument('--transcode-only', action='store_true',
-                        help="Transcode but do not copy tags")
-    parser.add_argument('--tags-only', action='store_true',
-                        help="Do not transcode, "
-                             "but copy tags for already existing files")
     parser.add_argument('--albumartist-hack', action='store_true',
-                        help="Write album artist into composer field")
+                        help="write album artist into composer field")
     parser.add_argument('--discnumber-hack', action='store_true',
-                        help="Extend album field by disc number")
+                        help="extend album field by disc number")
     parser.add_argument('--tracknumber-hack', action='store_true',
-                        help="Remove track total from track number")
+                        help="remove track total from track number")
 
     # Parse
     settings = parser.parse_args(remaining_argv)
@@ -285,17 +290,13 @@ def load_settings(arguments=None):
         if settings.playlist_src is not None:
             paths.append('playlist_src')
         settings_dict = vars(settings)
-        if settings_dict['audio_dest']:
-            util.ensure_directory_exists(
-                util.makepath(settings_dict['audio_dest']))
+        util.ensure_directory_exists(
+            util.makepath(settings_dict['audio_dest']))
         for path in paths:
             settings_dict[path] = util.makepath(settings_dict[path])
             if not os.path.isdir(settings_dict[path]):
                 raise IOError("{} is not a directory".format(
                     settings_dict[path]))
-    except AttributeError:
-        parser.error("Arguments audio-src and audio-dest are required and "
-                     "need to be accessible folders")
     except IOError as err:
         parser.error(err)
 
