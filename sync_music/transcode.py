@@ -42,7 +42,7 @@ class Transcode(object):  # pylint: disable=R0902
         print(" - Mutagen " + mutagen.version_string)
         self._file_mode = file_mode
         self._tag_mode = tag_mode
-        if file_mode == 'auto':
+        if file_mode in ['auto', 'transcode']:
             print(" - Converting to {} in quality {} "
                   "(LAME quality parameter; 0 best, 9 fastest)".format(
                       self._format.NAME, self._compression))
@@ -76,6 +76,8 @@ class Transcode(object):  # pylint: disable=R0902
                 self.transcode(in_filepath, out_filepath)
             else:
                 self.copy(in_filepath, out_filepath)
+        elif self._file_mode == 'transcode':
+            self.transcode(in_filepath, out_filepath)
 
         if self._tag_mode == 'auto':
             self.copy_tags(in_filepath, out_filepath)
@@ -92,7 +94,7 @@ class Transcode(object):  # pylint: disable=R0902
         try:
             audiotools.open(in_filepath).convert(
                 out_filepath, self._format, compression=self._compression)
-        except audiotools.EncodingError as err:
+        except (audiotools.EncodingError, audiotools.UnsupportedFile) as err:
             raise IOError("Failed to transcode file {}: {}"
                           .format(in_filepath, err))
 

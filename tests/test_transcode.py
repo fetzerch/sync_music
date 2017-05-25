@@ -98,6 +98,11 @@ class TestTranscode(util.TemporaryOutputPathFixture):
             os.path.join(self.output_path, self.out_filename))
         self.execute_transcode(Transcode(file_mode='skip'))
 
+    def test_transcode_transcode(self):
+        """ Tests transcoding with forced transcode """
+        self.execute_transcode(Transcode(file_mode='transcode'),
+                               in_filename=self.in_filename_mp3)
+
     def test_transcode_folderimage(self):
         """ Tests transcoding without folder image """
         # Copy input file to a folder without folder.jpg (output folder)
