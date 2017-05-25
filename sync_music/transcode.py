@@ -18,6 +18,7 @@
 """ Transcode action """
 
 import base64
+import collections
 import os
 import shutil
 
@@ -42,7 +43,7 @@ class Transcode(object):  # pylint: disable=R0902
         print(" - Mutagen " + mutagen.version_string)
         self._file_mode = file_mode
         self._tag_mode = tag_mode
-        if file_mode in ['auto', 'transcode']:
+        if file_mode in ['auto', 'transcode', 'replaygain']:
             print(" - Converting to {} in quality {} "
                   "(LAME quality parameter; 0 best, 9 fastest)".format(
                       self._format.NAME, self._compression))
@@ -76,7 +77,7 @@ class Transcode(object):  # pylint: disable=R0902
                 self.transcode(in_filepath, out_filepath)
             else:
                 self.copy(in_filepath, out_filepath)
-        elif self._file_mode == 'transcode':
+        elif self._file_mode in ['transcode', 'replaygain']:
             self.transcode(in_filepath, out_filepath)
 
         if self._tag_mode == 'auto':
@@ -88,12 +89,49 @@ class Transcode(object):  # pylint: disable=R0902
         print("Copying from {} to {}".format(in_filepath, out_filepath))
         shutil.copy(in_filepath, out_filepath)
 
+    @classmethod
+    def get_replaygain(cls, in_filepath):
+        """ Read ReplayGain info from tags """
+        tags = [
+            'replaygain_album_gain',
+            'replaygain_album_peak',
+            'replaygain_track_gain',
+            'replaygain_track_peak'
+        ]
+        rp_info = collections.namedtuple('ReplayGainInfo', tags)
+        in_file = mutagen.File(in_filepath)
+        tag_prefix = 'TXXX:' if isinstance(in_file, mutagen.mp3.MP3) else ''
+        result = []
+        try:
+            for tag in tags:
+                value = in_file.tags['{}{}'.format(tag_prefix, tag)][0]
+                result.append(float(value.replace('dB', '')))
+            return rp_info(*result)
+        except (TypeError, KeyError):
+            return None
+
     def transcode(self, in_filepath, out_filepath):
         """ Transcode audio file """
         print("Transcoding from {} to {}".format(in_filepath, out_filepath))
         try:
-            audiotools.open(in_filepath).convert(
-                out_filepath, self._format, compression=self._compression)
+            if self._file_mode != 'replaygain':
+                audiotools.open(in_filepath).convert(
+                    out_filepath, self._format, compression=self._compression)
+            else:
+                in_file = audiotools.open(in_filepath)
+                rp_info = self.get_replaygain(in_filepath)
+                if rp_info:
+                    pcmreader = audiotools.replaygain.ReplayGainReader(
+                        in_file.to_pcm(),
+                        rp_info.replaygain_album_gain,
+                        rp_info.replaygain_album_peak)
+                    self._format.from_pcm(out_filepath, pcmreader,
+                                          self._compression)
+                else:
+                    print("No ReplayGain info found {}".format(in_filepath))
+                    audiotools.open(in_filepath).convert(
+                        out_filepath, self._format,
+                        compression=self._compression)
         except (audiotools.EncodingError, audiotools.UnsupportedFile) as err:
             raise IOError("Failed to transcode file {}: {}"
                           .format(in_filepath, err))
@@ -132,6 +170,13 @@ class Transcode(object):  # pylint: disable=R0902
             self.apply_disknumber_hack(mp3_file.tags)
         if self._tracknumber_hack:
             self.apply_tracknumber_hack(mp3_file.tags)
+
+        # Remove ReplayGain tags if the volume has already been changed
+        if self._file_mode == 'replaygain':
+            mp3_file.tags.delall('TXXX:replaygain_album_gain')
+            mp3_file.tags.delall('TXXX:replaygain_album_peak')
+            mp3_file.tags.delall('TXXX:replaygain_track_gain')
+            mp3_file.tags.delall('TXXX:replaygain_track_peak')
 
         # Save as id3v1 and id3v2.3
         mp3_file.tags.update_to_v23()

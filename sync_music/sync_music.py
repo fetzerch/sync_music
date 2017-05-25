@@ -260,11 +260,14 @@ def load_settings(arguments=None):
                         help="rerun action even if the file has not changed")
     parser.add_argument('-b', '--batch', action='store_true',
                         help="batch mode, no user input")
+
     parser.add_argument('--file-mode', choices=['auto', 'transcode',
-                                                'copy', 'skip'],
+                                                'replaygain', 'copy', 'skip'],
                         default='auto',
                         help="auto: copy MP3s, transcode others (default); "
                              "transcode: transcode all files (slow); "
+                             "replaygain: transcode all files and apply "
+                             " ReplayGain normalization (slow); "
                              "copy: copy all files; "
                              "skip: skip processing files, but process tags")
     parser.add_argument('--tag-mode', choices=['auto', 'skip'], default='auto',

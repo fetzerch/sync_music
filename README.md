@@ -13,7 +13,8 @@ depending on the input file format. Music files in FLAC and Ogg Vorbis
 format are transcoded to MP3. MP3 audio files and other files are
 transferred unchanged. Filenames are adapted where necessary to comply
 with the FAT32 format. If preferred, sync_music can also forcefully
-transcode all files in order to save disk space.
+transcode all files in order to save disk space. Another operation mode
+applies volume normalization based on ReplayGain tags.
 
 Transcoding is a time consuming operation, therefore the first run of
 sync_music can take several minutes. In subsequent runs however, it will

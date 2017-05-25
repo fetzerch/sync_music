@@ -103,6 +103,13 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         self.execute_transcode(Transcode(file_mode='transcode'),
                                in_filename=self.in_filename_mp3)
 
+    def test_transcode_replaygain(self):
+        """ Tests transcoding with ReplayGain """
+        self.execute_transcode(Transcode(file_mode='replaygain'),
+                               in_filename=self.in_filename_mp3all)
+        self.execute_transcode(Transcode(file_mode='replaygain'),
+                               in_filename=self.in_filename_mp3)
+
     def test_transcode_folderimage(self):
         """ Tests transcoding without folder image """
         # Copy input file to a folder without folder.jpg (output folder)
