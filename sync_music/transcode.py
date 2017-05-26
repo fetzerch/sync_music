@@ -36,7 +36,7 @@ class Transcode(object):  # pylint: disable=R0902
                  tracknumber_hack=False):
         self.name = "Processing"
         self._format = audiotools.MP3Audio
-        self._compression = audiotools.MP3Audio.COMPRESSION_MODES[2]
+        self._compression = 'standard'
 
         print("Transcoding settings:")
         print(" - Audiotools " + audiotools.VERSION)
@@ -44,9 +44,8 @@ class Transcode(object):  # pylint: disable=R0902
         self._file_mode = file_mode
         self._tag_mode = tag_mode
         if file_mode in ['auto', 'transcode', 'replaygain']:
-            print(" - Converting to {} in quality {} "
-                  "(LAME quality parameter; 0 best, 9 fastest)".format(
-                      self._format.NAME, self._compression))
+            print(" - Converting to {} in quality {}".format(
+                self._format.NAME, self._compression))
         else:
             print(" - Skipping transcoding")
 
@@ -126,7 +125,7 @@ class Transcode(object):  # pylint: disable=R0902
                         rp_info.replaygain_album_gain,
                         rp_info.replaygain_album_peak)
                     self._format.from_pcm(out_filepath, pcmreader,
-                                          self._compression)
+                                          compression=self._compression)
                 else:
                     print("No ReplayGain info found {}".format(in_filepath))
                     audiotools.open(in_filepath).convert(
