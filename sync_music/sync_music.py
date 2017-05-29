@@ -134,6 +134,11 @@ class SyncMusic():
                 if not os.path.exists(out_filepath):
                     del self._hashdb.database[in_filename]
 
+    def _clean_up_empty_directories(self):
+        """ Remove empty directories in the destination """
+        print("Cleaning up empty directories")
+        util.delete_empty_directories(self._args.audio_dest)
+
     def sync_audio(self):
         """ Sync audio """
         self._hashdb.load()
@@ -149,6 +154,7 @@ class SyncMusic():
 
         # Cleanup files that does not exist any more
         self._clean_up_missing_files()
+        self._clean_up_empty_directories()
 
         # Do the work
         print("Starting actions")

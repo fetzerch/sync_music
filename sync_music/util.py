@@ -50,6 +50,18 @@ def ensure_directory_exists(path):
         pass
 
 
+def delete_empty_directories(path):
+    """ Recursively remove empty directories """
+    if not os.path.isdir(path):
+        return False
+    if all([delete_empty_directories(os.path.join(path, filename))
+            for filename in os.listdir(path)]):
+        print("Removing {}".format(path))
+        os.rmdir(path)
+        return True
+    return False
+
+
 def correct_path_fat32(filename):
     """ Replace illegal characters in FAT32 filenames with '_' """
     return re.sub(r'[\\|:|*|?|"|<|>|\|]', '_', filename)
