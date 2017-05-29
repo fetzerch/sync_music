@@ -26,6 +26,7 @@ from nose.tools import raises
 
 from sync_music.sync_music import SyncMusic
 from sync_music.sync_music import load_settings
+from sync_music.util import list_all_files
 
 from . import util
 
@@ -71,7 +72,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
     output_files = [
         'stripped_flac.mp3', 'stripped_mp3.mp3', 'stripped_ogg.mp3',
         'withtags_flac.mp3', 'withtags_mp3.mp3', 'withtags_ogg.mp3',
-        'sync_music.db', 'folder.jpg'
+        'sync_music.db', 'folder.jpg', 'dir/folder.jpg'
     ]
 
     def __init__(self):
@@ -90,7 +91,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         args.jobs = 1 if jobs is None else jobs
         sync_music = SyncMusic(args)
         sync_music.sync_audio()
-        eq_(set(os.listdir(self.output_path)), set(output_files))
+        eq_(set(list_all_files(self.output_path)), set(output_files))
 
     @raises(FileNotFoundError)
     def test_emptyfolder(self):
@@ -149,7 +150,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
             print(message + ' (yes)')
             return True
         output_files = [
-            'stripped_mp3.mp3', 'withtags_mp3.mp3', 'sync_music.db'
+            'stripped_mp3.mp3', 'sync_music.db'
         ]
         with patch('sync_music.util.query_yes_no', side_effect=query_yes):
             self._execute_sync_music(input_path, output_files)
@@ -163,7 +164,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         output_files = [
             'stripped_flac.flac', 'stripped_mp3.mp3', 'stripped_ogg.ogg',
             'withtags_flac.flac', 'withtags_mp3.mp3', 'withtags_ogg.ogg',
-            'sync_music.db', 'folder.jpg'
+            'sync_music.db', 'folder.jpg', 'dir/folder.jpg'
         ]
         self._execute_sync_music(output_files=output_files,
                                  arguments=['--file-mode=copy'])
@@ -192,7 +193,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         with patch('sync_music.transcode.Transcode.execute',
                    side_effect=IOError('Mocked exception')):
             self._execute_sync_music(
-                output_files=['sync_music.db', 'folder.jpg'])
+                output_files=['sync_music.db', 'folder.jpg', 'dir/folder.jpg'])
 
 
 class TestSyncMusicPlaylists(util.TemporaryOutputPathFixture):
