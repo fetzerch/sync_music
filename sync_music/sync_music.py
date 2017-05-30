@@ -123,10 +123,9 @@ class SyncMusic():
 
             if not os.path.exists(in_filepath):
                 if os.path.exists(out_filepath):
-                    result = util.query_yes_no(
-                        "File {} does not exist, do you want to remove {}"
-                        .format(in_filename, out_filename))
-                    if result:
+                    if (self._args.batch or util.query_yes_no(
+                            "File {} does not exist, do you want to remove {}"
+                            .format(in_filename, out_filename))):
                         try:
                             os.remove(out_filepath)
                         except OSError as err:
