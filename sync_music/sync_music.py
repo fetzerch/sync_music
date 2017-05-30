@@ -248,44 +248,56 @@ def load_settings(arguments=None):
     # ArgumentParser 2: Get rest of the arguments
     parser = argparse.ArgumentParser(parents=[config_parser])
     parser.set_defaults(**defaults)
-    parser.add_argument('-v', '--version', action='version',
-                        version='%(prog)s {}'.format(__version__))
-    parser.add_argument('--audio-src', type=str,
-                        required='audio_src' not in defaults,
-                        help="folder containing the audio sources")
-    parser.add_argument('--audio-dest', type=str,
-                        required='audio_dest' not in defaults,
-                        help="target directory for converted audio files")
-    parser.add_argument('--playlist-src', type=str,
-                        help='folder containing the source playlists')
+    parser.add_argument(
+        '-v', '--version', action='version',
+        version='%(prog)s {}'.format(__version__))
+    parser.add_argument(
+        '-b', '--batch', action='store_true', help="batch mode, no user input")
+
+    parser_paths = parser.add_argument_group("Paths")
+    parser_paths.add_argument(
+        '--audio-src', type=str, required='audio_src' not in defaults,
+        help="folder containing the audio sources")
+    parser_paths.add_argument(
+        '--audio-dest', type=str, required='audio_dest' not in defaults,
+        help="target directory for converted files")
+    parser_paths.add_argument(
+        '--playlist-src', type=str,
+        help='folder containing the source playlists')
 
     # Audio sync options
-    parser.add_argument('-j', '--jobs', type=int, default=4,
-                        help="number of parallel jobs")
-    parser.add_argument('-f', '--force', action='store_true',
-                        help="rerun action even if the file has not changed")
-    parser.add_argument('-b', '--batch', action='store_true',
-                        help="batch mode, no user input")
-
-    parser.add_argument('--file-mode', choices=['auto', 'transcode',
-                                                'replaygain', 'copy', 'skip'],
-                        default='auto',
-                        help="auto: copy MP3s, transcode others (default); "
-                             "transcode: transcode all files (slow); "
-                             "replaygain: transcode all files and apply "
-                             " ReplayGain normalization (slow); "
-                             "copy: copy all files; "
-                             "skip: skip processing files, but process tags")
-    parser.add_argument('--tag-mode', choices=['auto', 'skip'], default='auto',
-                        help="auto: process tags; skip: skip processing tags")
+    parser_audio = parser.add_argument_group("Transcoding options")
+    parser_audio.add_argument(
+        '--file-mode',
+        choices=['auto', 'transcode', 'replaygain', 'copy', 'skip'],
+        default='auto',
+        help="auto: copy MP3s and transcode others (default), "
+             "transcode: transcode all files (slow), "
+             "replaygain: transcode all files and apply ReplayGain "
+             "normalization (slow), "
+             "copy: copy all files, "
+             "skip: skip processing files but process tags")
+    parser_audio.add_argument(
+        '--tag-mode', choices=['auto', 'skip'], default='auto',
+        help="auto: process tags, skip: skip processing tags")
+    parser_audio.add_argument(
+        '-f', '--force', action='store_true',
+        help="rerun action even if the source file has not changed")
+    parser_audio.add_argument(
+        '-j', '--jobs', type=int, default=4, help="number of parallel jobs")
 
     # Optons for action transcode
-    parser.add_argument('--albumartist-hack', action='store_true',
-                        help="write album artist into composer field")
-    parser.add_argument('--discnumber-hack', action='store_true',
-                        help="extend album field by disc number")
-    parser.add_argument('--tracknumber-hack', action='store_true',
-                        help="remove track total from track number")
+    parser_hacks = parser.add_argument_group(
+        "Hacks", "Modify target files to work around player shortcomings")
+    parser_hacks.add_argument(
+        '--albumartist-hack', action='store_true',
+        help="write album artist into composer field")
+    parser_hacks.add_argument(
+        '--discnumber-hack', action='store_true',
+        help="extend album field by disc number")
+    parser_hacks.add_argument(
+        '--tracknumber-hack', action='store_true',
+        help="remove track total from track number")
 
     # Parse
     settings = parser.parse_args(remaining_argv)
