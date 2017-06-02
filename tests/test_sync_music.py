@@ -49,6 +49,15 @@ class TestSyncMusicSettings(object):
         load_settings(argv)
 
     @staticmethod
+    @raises(SystemExit)
+    def test_forcecopy_with_hacks():
+        """ Tests loading of settings with force copy and hacks """
+        argv = ['--audio-src', '/tmp',
+                '--audio-dest', '/tmp',
+                '--mode=copy', '--albumartist-hack']
+        load_settings(argv)
+
+    @staticmethod
     def test_configfile():
         """ Tests loading of settings within config file """
         filename = '/tmp/sync_music.cfg'
@@ -167,16 +176,16 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
             'sync_music.db', 'folder.jpg', 'dir/folder.jpg'
         ]
         self._execute_sync_music(output_files=output_files,
-                                 arguments=['--file-mode=copy'])
+                                 arguments=['--mode=copy'])
 
     def test_reference_transcodeonly(self):
-        """ Test reference folder with transcode only """
-        self._execute_sync_music(arguments=['--tag-mode=skip'])
+        """ Test reference folder with tag processing only """
+        self._execute_sync_music()
+        self._execute_sync_music(arguments=['-f', '--disable-file-processing'])
 
     def test_reference_tagsonly(self):
-        """ Test reference folder with tags only """
-        self._execute_sync_music()
-        self._execute_sync_music(arguments=['-f', '--file-mode=skip'])
+        """ Test reference folder with file processing only """
+        self._execute_sync_music(arguments=['--disable-tag-processing'])
 
     def test_reference_hacks(self):
         """ Test reference folder with hacks """

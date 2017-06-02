@@ -31,7 +31,7 @@ class Transcode(object):  # pylint: disable=R0902
     """ Transcodes audio files """
 
     def __init__(self,  # pylint: disable=R0913
-                 file_mode='auto', tag_mode='auto',
+                 mode='auto', transcode=True, copy_tags=True,
                  composer_hack=False, discnumber_hack=False,
                  tracknumber_hack=False):
         self.name = "Processing"
@@ -41,15 +41,16 @@ class Transcode(object):  # pylint: disable=R0902
         print("Transcoding settings:")
         print(" - Audiotools " + audiotools.VERSION)
         print(" - Mutagen " + mutagen.version_string)
-        self._file_mode = file_mode
-        self._tag_mode = tag_mode
-        if file_mode in ['auto', 'transcode', 'replaygain']:
+        self._mode = mode
+        self._transcode = transcode
+        if transcode and mode in ['auto', 'transcode', 'replaygain']:
             print(" - Converting to {} in quality {}".format(
                 self._format.NAME, self._compression))
         else:
             print(" - Skipping transcoding")
 
-        if tag_mode in ['auto']:
+        self._copy_tags = copy_tags
+        if copy_tags:
             print(" - Copying tags")
         else:
             print(" - Skipping copying tags")
@@ -71,15 +72,17 @@ class Transcode(object):  # pylint: disable=R0902
 
     def execute(self, in_filepath, out_filepath):
         """ Executes action """
-        if self._file_mode == 'auto':
-            if os.path.splitext(in_filepath)[1] != '.' + self._format.SUFFIX:
+        if self._transcode:
+            if self._mode == 'auto':
+                if (os.path.splitext(in_filepath)[1] !=
+                        '.' + self._format.SUFFIX):
+                    self.transcode(in_filepath, out_filepath)
+                else:
+                    self.copy(in_filepath, out_filepath)
+            elif self._mode in ['transcode', 'replaygain']:
                 self.transcode(in_filepath, out_filepath)
-            else:
-                self.copy(in_filepath, out_filepath)
-        elif self._file_mode in ['transcode', 'replaygain']:
-            self.transcode(in_filepath, out_filepath)
 
-        if self._tag_mode == 'auto':
+        if self._copy_tags:
             self.copy_tags(in_filepath, out_filepath)
 
     @classmethod
@@ -113,7 +116,7 @@ class Transcode(object):  # pylint: disable=R0902
         """ Transcode audio file """
         print("Transcoding from {} to {}".format(in_filepath, out_filepath))
         try:
-            if self._file_mode != 'replaygain':
+            if self._mode != 'replaygain':
                 audiotools.open(in_filepath).convert(
                     out_filepath, self._format, compression=self._compression)
             else:
@@ -171,7 +174,7 @@ class Transcode(object):  # pylint: disable=R0902
             self.apply_tracknumber_hack(mp3_file.tags)
 
         # Remove ReplayGain tags if the volume has already been changed
-        if self._file_mode == 'replaygain':
+        if self._mode == 'replaygain':
             mp3_file.tags.delall('TXXX:replaygain_album_gain')
             mp3_file.tags.delall('TXXX:replaygain_album_peak')
             mp3_file.tags.delall('TXXX:replaygain_track_gain')

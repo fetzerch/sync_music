@@ -48,14 +48,14 @@ class SyncMusic():
         print(" - audio-dest: {}".format(args.audio_dest))
         if args.playlist_src:
             print(" - playlist-src: {}".format(args.playlist_src))
-        print(" - file mode: {}".format(args.file_mode))
-        print(" - tag mode: {}".format(args.tag_mode))
+        print(" - mode: {}".format(args.mode))
         print("")
         self._action_copy = Copy()
         self._action_skip = Skip()
         self._action_transcode = Transcode(
-            file_mode=self._args.file_mode,
-            tag_mode=self._args.tag_mode,
+            mode=self._args.mode,
+            transcode=not self._args.disable_file_processing,
+            copy_tags=not self._args.disable_tag_processing,
             composer_hack=self._args.albumartist_hack,
             discnumber_hack=self._args.discnumber_hack,
             tracknumber_hack=self._args.tracknumber_hack)
@@ -104,7 +104,7 @@ class SyncMusic():
         """ Determine the action for the given file """
         extension = os.path.splitext(in_filename)[1]
         if extension in ['.flac', '.ogg', '.mp3']:
-            if self._args.file_mode == 'copy':
+            if self._args.mode == 'copy':
                 return self._action_copy
             return self._action_transcode
         elif in_filename.endswith('folder.jpg'):
@@ -267,18 +267,23 @@ def load_settings(arguments=None):
     # Audio sync options
     parser_audio = parser.add_argument_group("Transcoding options")
     parser_audio.add_argument(
-        '--file-mode',
-        choices=['auto', 'transcode', 'replaygain', 'copy', 'skip'],
+        '--mode',
+        choices=['auto', 'transcode', 'replaygain', 'copy'],
         default='auto',
-        help="auto: copy MP3s and transcode others (default), "
-             "transcode: transcode all files (slow), "
-             "replaygain: transcode all files and apply ReplayGain "
-             "normalization (slow), "
-             "copy: copy all files, "
-             "skip: skip processing files but process tags")
+        help="auto: copy MP3s, transcode others and adapt tags (default); "
+             "transcode: transcode all files and adapt tags (slow); "
+             "replaygain: transcode all files, apply ReplayGain "
+             "normalization and adapt tags (slow), "
+             "copy: copy all files, leave tags untouched (implies "
+             "--disable-tag-processing)")
     parser_audio.add_argument(
-        '--tag-mode', choices=['auto', 'skip'], default='auto',
-        help="auto: process tags, skip: skip processing tags")
+        '--disable-file-processing', action='store_true',
+        help="disable processing files, update tags "
+             "(if not explicitly disabled)")
+    parser_audio.add_argument(
+        '--disable-tag-processing', action='store_true',
+        help="disable processing tags, update files "
+             "(if not explicitly disabled)")
     parser_audio.add_argument(
         '-f', '--force', action='store_true',
         help="rerun action even if the source file has not changed")
@@ -303,6 +308,10 @@ def load_settings(arguments=None):
 
     # Check required arguments and make absolute paths
     try:
+        if settings.mode == 'copy' and (settings.albumartist_hack or
+                                        settings.discnumber_hack or
+                                        settings.tracknumber_hack):
+            raise IOError("hacks cannot be used in copy mode")
         paths = ['audio_src', 'audio_dest']
         if settings.playlist_src is not None:
             paths.append('playlist_src')

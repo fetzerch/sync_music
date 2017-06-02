@@ -87,27 +87,16 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         self.execute_transcode(Transcode(),
                                in_filename=self.in_filename_mp3empty)
 
-    def test_transcode_filesonly(self):
-        """ Tests transcoding with file processing only """
-        self.execute_transcode(Transcode(tag_mode='skip'))
-
-    def test_transcode_tagsonly(self):
-        """ Tests transcoding with tag processing only """
-        shutil.copy(
-            os.path.join(self.input_path, self.in_filename_mp3empty),
-            os.path.join(self.output_path, self.out_filename))
-        self.execute_transcode(Transcode(file_mode='skip'))
-
     def test_transcode_transcode(self):
         """ Tests transcoding with forced transcode """
-        self.execute_transcode(Transcode(file_mode='transcode'),
+        self.execute_transcode(Transcode(mode='transcode'),
                                in_filename=self.in_filename_mp3)
 
     def test_transcode_replaygain(self):
         """ Tests transcoding with ReplayGain """
-        self.execute_transcode(Transcode(file_mode='replaygain'),
+        self.execute_transcode(Transcode(mode='replaygain'),
                                in_filename=self.in_filename_mp3all)
-        self.execute_transcode(Transcode(file_mode='replaygain'),
+        self.execute_transcode(Transcode(mode='replaygain'),
                                in_filename=self.in_filename_mp3)
 
     def test_transcode_folderimage(self):
@@ -154,7 +143,7 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         shutil.copy(
             os.path.join(self.input_path, self.img_filename),
             os.path.join(self.output_path, self.out_filename))
-        self.execute_transcode(Transcode(file_mode='skip'))
+        self.execute_transcode(Transcode(mode='copy'))
 
     @raises(IOError)
     def test_transcodingerror_format(self):
