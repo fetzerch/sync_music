@@ -31,7 +31,8 @@ class Transcode(object):  # pylint: disable=R0902
     """ Transcodes audio files """
 
     def __init__(self,  # pylint: disable=R0913
-                 mode='auto', transcode=True, copy_tags=True,
+                 mode='auto', replaygain_preamp_gain=0.0,
+                 transcode=True, copy_tags=True,
                  composer_hack=False, discnumber_hack=False,
                  tracknumber_hack=False):
         self.name = "Processing"
@@ -43,9 +44,14 @@ class Transcode(object):  # pylint: disable=R0902
         print(" - Mutagen " + mutagen.version_string)
         self._mode = mode
         self._transcode = transcode
-        if transcode and mode in ['auto', 'transcode', 'replaygain']:
+        if transcode and mode in ['auto', 'transcode', 'replaygain',
+                                  'replaygain-album']:
             print(" - Converting to {} in quality {}".format(
                 self._format.NAME, self._compression))
+            self._replaygain_preamp_gain = replaygain_preamp_gain
+            if mode.startswith('replaygain') and replaygain_preamp_gain != 0.0:
+                print(" - Applying ReplayGain pre-amp gain {}".format(
+                    replaygain_preamp_gain))
         else:
             print(" - Skipping transcoding")
 
@@ -79,7 +85,7 @@ class Transcode(object):  # pylint: disable=R0902
                     self.transcode(in_filepath, out_filepath)
                 else:
                     self.copy(in_filepath, out_filepath)
-            elif self._mode in ['transcode', 'replaygain']:
+            elif self._mode in ['transcode', 'replaygain', 'replaygain-album']:
                 self.transcode(in_filepath, out_filepath)
 
         if self._copy_tags:
@@ -91,24 +97,22 @@ class Transcode(object):  # pylint: disable=R0902
         print("Copying from {} to {}".format(in_filepath, out_filepath))
         shutil.copy(in_filepath, out_filepath)
 
-    @classmethod
-    def get_replaygain(cls, in_filepath):
+    def get_replaygain(self, in_filepath):
         """ Read ReplayGain info from tags """
-        tags = [
-            'replaygain_album_gain',
-            'replaygain_album_peak',
-            'replaygain_track_gain',
-            'replaygain_track_peak'
-        ]
-        rp_info = collections.namedtuple('ReplayGainInfo', tags)
         in_file = mutagen.File(in_filepath)
         tag_prefix = 'TXXX:' if isinstance(in_file, mutagen.mp3.MP3) else ''
-        result = []
+        rp_info = collections.namedtuple('ReplayGainInfo', ['gain', 'peak'])
         try:
-            for tag in tags:
+            def _get_value(tag):
                 value = in_file.tags['{}{}'.format(tag_prefix, tag)][0]
-                result.append(float(value.replace('dB', '')))
-            return rp_info(*result)
+                return float(value.replace('dB', ''))
+
+            if self._mode == 'replaygain-album':
+                return rp_info(_get_value('replaygain_album_gain'),
+                               _get_value('replaygain_album_peak'))
+
+            return rp_info(_get_value('replaygain_track_gain'),
+                           _get_value('replaygain_track_peak'))
         except (TypeError, KeyError):
             return None
 
@@ -116,7 +120,7 @@ class Transcode(object):  # pylint: disable=R0902
         """ Transcode audio file """
         print("Transcoding from {} to {}".format(in_filepath, out_filepath))
         try:
-            if self._mode != 'replaygain':
+            if not self._mode.startswith('replaygain'):
                 audiotools.open(in_filepath).convert(
                     out_filepath, self._format, compression=self._compression)
             else:
@@ -125,8 +129,8 @@ class Transcode(object):  # pylint: disable=R0902
                 if rp_info:
                     pcmreader = audiotools.replaygain.ReplayGainReader(
                         in_file.to_pcm(),
-                        rp_info.replaygain_album_gain,
-                        rp_info.replaygain_album_peak)
+                        rp_info.gain + self._replaygain_preamp_gain,
+                        rp_info.peak)
                     self._format.from_pcm(out_filepath, pcmreader,
                                           compression=self._compression)
                 else:
@@ -174,7 +178,7 @@ class Transcode(object):  # pylint: disable=R0902
             self.apply_tracknumber_hack(mp3_file.tags)
 
         # Remove ReplayGain tags if the volume has already been changed
-        if self._mode == 'replaygain':
+        if self._mode.startswith('replaygain'):
             mp3_file.tags.delall('TXXX:replaygain_album_gain')
             mp3_file.tags.delall('TXXX:replaygain_album_peak')
             mp3_file.tags.delall('TXXX:replaygain_track_gain')

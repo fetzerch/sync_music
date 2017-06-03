@@ -54,6 +54,7 @@ class SyncMusic():
         self._action_skip = Skip()
         self._action_transcode = Transcode(
             mode=self._args.mode,
+            replaygain_preamp_gain=self._args.replaygain_preamp_gain,
             transcode=not self._args.disable_file_processing,
             copy_tags=not self._args.disable_tag_processing,
             composer_hack=self._args.albumartist_hack,
@@ -223,7 +224,7 @@ class SyncMusic():
         out_file.close()
 
 
-def load_settings(arguments=None):
+def load_settings(arguments=None):  # pylint: disable=too-many-locals
     """ Load settings """
     # ArgumentParser 1: Get config file (disable help)
     config_parser = argparse.ArgumentParser(
@@ -268,14 +269,23 @@ def load_settings(arguments=None):
     parser_audio = parser.add_argument_group("Transcoding options")
     parser_audio.add_argument(
         '--mode',
-        choices=['auto', 'transcode', 'replaygain', 'copy'],
+        choices=['auto', 'transcode', 'replaygain', 'replaygain-album',
+                 'copy'],
         default='auto',
         help="auto: copy MP3s, transcode others and adapt tags (default); "
              "transcode: transcode all files and adapt tags (slow); "
-             "replaygain: transcode all files, apply ReplayGain "
+             "replaygain: transcode all files, apply ReplayGain track based "
              "normalization and adapt tags (slow), "
+             "replaygain-album: transcode all files, apply ReplayGain album "
+             "based normalization and adapt tags (slow), "
              "copy: copy all files, leave tags untouched (implies "
              "--disable-tag-processing)")
+    parser_audio.add_argument(
+        '--replaygain-preamp-gain', type=float,
+        default=4.0,
+        help="modify ReplayGain pre-amp gain if transcoded files are "
+             "too quiet or too loud (default +4.0 as many players are "
+             "calibrated for higher volume)")
     parser_audio.add_argument(
         '--disable-file-processing', action='store_true',
         help="disable processing files, update tags "
@@ -311,7 +321,7 @@ def load_settings(arguments=None):
         if settings.mode == 'copy' and (settings.albumartist_hack or
                                         settings.discnumber_hack or
                                         settings.tracknumber_hack):
-            raise IOError("hacks cannot be used in copy mode")
+            parser.error("hacks cannot be used in copy mode")
         paths = ['audio_src', 'audio_dest']
         if settings.playlist_src is not None:
             paths.append('playlist_src')

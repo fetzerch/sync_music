@@ -93,10 +93,16 @@ class TestTranscode(util.TemporaryOutputPathFixture):
                                in_filename=self.in_filename_mp3)
 
     def test_transcode_replaygain(self):
-        """ Tests transcoding with ReplayGain """
+        """ Tests transcoding with ReplayGain (track based) """
         self.execute_transcode(Transcode(mode='replaygain'),
                                in_filename=self.in_filename_mp3all)
         self.execute_transcode(Transcode(mode='replaygain'),
+                               in_filename=self.in_filename_mp3)
+
+    def test_transcode_replaygainalbum(self):
+        """ Tests transcoding with ReplayGain (album based) """
+        self.execute_transcode(Transcode(mode='replaygain-album',
+                                         replaygain_preamp_gain=10.0),
                                in_filename=self.in_filename_mp3)
 
     def test_transcode_folderimage(self):
