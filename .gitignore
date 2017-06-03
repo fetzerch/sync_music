@@ -8,3 +8,5 @@ lib
 
 .coverage
 cover/
+
+sync_music.log

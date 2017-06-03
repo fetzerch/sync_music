@@ -19,9 +19,10 @@
 
 import os
 import codecs
-import traceback
+import logging
 import argparse
 import configparser
+import sys
 
 from multiprocessing import Pool
 
@@ -33,23 +34,26 @@ from .transcode import Transcode
 
 __version__ = '0.2.0'
 
+logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
+    logging.getLogger(__name__))
+
 
 class SyncMusic():
     """ sync_music - Sync music library to external device """
 
     def __init__(self, args):
         """ Initialize SyncMusic """
-        print(__doc__)
-        print("")
+        logger.info(__doc__)
+        logger.info("")
         self._args = args
         self._hashdb = HashDb(os.path.join(args.audio_dest, 'sync_music.db'))
-        print("Settings:")
-        print(" - audio-src:  {}".format(args.audio_src))
-        print(" - audio-dest: {}".format(args.audio_dest))
+        logger.info("Settings:")
+        logger.info(" - audio-src:  {}".format(args.audio_src))
+        logger.info(" - audio-dest: {}".format(args.audio_dest))
         if args.playlist_src:
-            print(" - playlist-src: {}".format(args.playlist_src))
-        print(" - mode: {}".format(args.mode))
-        print("")
+            logger.info(" - playlist-src: {}".format(args.playlist_src))
+        logger.info(" - mode: {}".format(args.mode))
+        logger.info("")
         self._action_copy = Copy()
         self._action_skip = Skip()
         self._action_transcode = Transcode(
@@ -71,12 +75,12 @@ class SyncMusic():
         out_filename = action.get_out_filename(in_filename)
         if out_filename is not None:
             out_filename = util.correct_path_fat32(out_filename)
-            print("{:04}/{:04}: {} {} to {}".format(
-                file_index, total_files, action.name,
-                in_filename, out_filename))
+            logger.info("{:04}/{:04}: {} {} to {}",
+                        file_index, total_files, action.name,
+                        in_filename, out_filename)
         else:
-            print("{:04}/{:04}: {} {}".format(
-                file_index, total_files, action.name, in_filename))
+            logger.info("{:04}/{:04}: {} {}",
+                        file_index, total_files, action.name, in_filename)
             return None
 
         in_filepath = os.path.join(self._args.audio_src, in_filename)
@@ -95,10 +99,10 @@ class SyncMusic():
             try:
                 action.execute(in_filepath, out_filepath)
             except IOError as err:
-                print("Error: {}".format(err))
+                logger.error("Error: {}", err)
                 return
             return (in_filename, out_filename, hash_current)
-        print("Skipping up to date file")
+        logger.info("Skipping up to date file")
         return None
 
     def _get_file_action(self, in_filename):
@@ -116,7 +120,7 @@ class SyncMusic():
         """ Remove files in the destination, where the source file doesn't
             exist anymore
         """
-        print("Cleaning up missing files")
+        logger.info("Cleaning up missing files")
         files = [(k, v[0]) for k, v in self._hashdb.database.items()]
         for in_filename, out_filename in files:
             in_filepath = os.path.join(self._args.audio_src, in_filename)
@@ -130,13 +134,14 @@ class SyncMusic():
                         try:
                             os.remove(out_filepath)
                         except OSError as err:
-                            print("Failed to remove file {}".format(err))
+                            logger.error("Error: Failed to remove file {}",
+                                         err)
                 if not os.path.exists(out_filepath):
                     del self._hashdb.database[in_filename]
 
     def _clean_up_empty_directories(self):
         """ Remove empty directories in the destination """
-        print("Cleaning up empty directories")
+        logger.info("Cleaning up empty directories")
         util.delete_empty_directories(self._args.audio_dest)
 
     def sync_audio(self):
@@ -157,7 +162,7 @@ class SyncMusic():
         self._clean_up_empty_directories()
 
         # Do the work
-        print("Starting actions")
+        logger.info("Starting actions")
         try:
             if self._args.jobs == 1:
                 # pool.map doesn't might not show all exceptions
@@ -168,9 +173,9 @@ class SyncMusic():
                 pool = Pool(processes=self._args.jobs)
                 file_hashes = pool.map(self._process_file, files)
         except:  # pylint: disable=bare-except
-            print(">>> traceback <<<")
-            traceback.print_exc()
-            print(">>> end of traceback <<<")
+            logger.error(">>> traceback <<<")
+            logger.exception("Exception")
+            logger.error(">>> end of traceback <<<")
 
         # Store new hashes in the database
         for file_hash in file_hashes:
@@ -190,11 +195,11 @@ class SyncMusic():
                             os.path.normpath(
                                 os.path.join(relpath, filename)))
                     except IOError as err:
-                        print("Error: {}".format(err))
+                        logger.error("Error: {}", err)
 
     def _sync_playlist(self, filename):
         """ Sync playlist """
-        print("Syncing playlist {}".format(filename))
+        logger.info("Syncing playlist {}", filename)
         srcpath = os.path.join(self._args.playlist_src, filename)
         destpath = os.path.join(self._args.audio_dest, filename)
 
@@ -216,7 +221,7 @@ class SyncMusic():
                         else:
                             in_filename = in_filename.split('/', 1)[1]
                 except IndexError:
-                    print("Warning: File does not exist: {}".format(line))
+                    logger.warning("File does not exist: {}", line)
                     continue
             line = line + '\r\n'
             out_file.write(line)
@@ -253,6 +258,9 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
         version='%(prog)s {}'.format(__version__))
     parser.add_argument(
         '-b', '--batch', action='store_true', help="batch mode, no user input")
+    parser.add_argument(
+        '-o', '--logfile', type=str, default='./sync_music.log',
+        help="write log output to file")
 
     parser_paths = parser.add_argument_group("Paths")
     parser_paths.add_argument(
@@ -342,6 +350,22 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
 def main():  # pragma: no cover
     """ sync_music - Sync music library to external device """
     args = load_settings()
+
+    rootlogger = logging.getLogger()
+    rootlogger.setLevel(logging.DEBUG)
+
+    consolelogger = logging.StreamHandler(sys.stdout)
+    consolelogger.setLevel(logging.INFO)
+    consolelogger.setFormatter(logging.Formatter("{message}", style='{'))
+    rootlogger.addHandler(consolelogger)
+
+    if args.logfile:
+        filelogger = logging.FileHandler(args.logfile, 'w')
+        filelogger.setLevel(logging.INFO)
+        filelogger.setFormatter(logging.Formatter(
+            "{asctime} {levelname:8s} {message}", style='{'))
+        rootlogger.addHandler(filelogger)
+
     sync_music = SyncMusic(args)
 
     if not args.batch and not util.query_yes_no("Do you want to continue?"):
@@ -350,7 +374,7 @@ def main():  # pragma: no cover
     try:
         sync_music.sync_audio()
     except FileNotFoundError as err:
-        print("Error: {}".format(err))
+        logger.critical("Failed to sync music {}", err)
         exit(1)
 
     if args.playlist_src:

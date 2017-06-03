@@ -19,12 +19,18 @@
 
 import base64
 import collections
+import logging
 import os
 import shutil
 
 import audiotools
 import audiotools.replaygain
 import mutagen
+
+from . import util
+
+logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
+    logging.getLogger(__name__))
 
 
 class Transcode(object):  # pylint: disable=too-many-instance-attributes
@@ -39,38 +45,38 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
         self._format = audiotools.MP3Audio
         self._compression = 'standard'
 
-        print("Transcoding settings:")
-        print(" - Audiotools " + audiotools.VERSION)
-        print(" - Mutagen " + mutagen.version_string)
+        logger.info("Transcoding settings:")
+        logger.info(" - Audiotools {}".format(audiotools.VERSION))
+        logger.info(" - Mutagen {}".format(mutagen.version_string))
         self._mode = mode
         self._transcode = transcode
         if transcode and mode in ['auto', 'transcode', 'replaygain',
                                   'replaygain-album']:
-            print(" - Converting to {} in quality {}".format(
+            logger.info(" - Converting to {} in quality {}".format(
                 self._format.NAME, self._compression))
             self._replaygain_preamp_gain = replaygain_preamp_gain
             if mode.startswith('replaygain') and replaygain_preamp_gain != 0.0:
-                print(" - Applying ReplayGain pre-amp gain {}".format(
+                logger.info(" - Applying ReplayGain pre-amp gain {}".format(
                     replaygain_preamp_gain))
         else:
-            print(" - Skipping transcoding")
+            logger.info(" - Skipping transcoding")
 
         self._copy_tags = copy_tags
         if copy_tags:
-            print(" - Copying tags")
+            logger.info(" - Copying tags")
         else:
-            print(" - Skipping copying tags")
+            logger.info(" - Skipping copying tags")
 
         self._composer_hack = composer_hack
         if composer_hack:
-            print(" - Writing albumartist into composer field")
+            logger.info(" - Writing albumartist into composer field")
         self._discnumber_hack = discnumber_hack
         if discnumber_hack:
-            print(" - Extending album field by disc number")
+            logger.info(" - Extending album field by disc number")
         self._tracknumber_hack = tracknumber_hack
         if tracknumber_hack:
-            print(" - Remove track total from track number")
-        print("")
+            logger.info(" - Remove track total from track number")
+        logger.info("")
 
     def get_out_filename(self, path):
         """ Determine output file path """
@@ -94,7 +100,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def copy(cls, in_filepath, out_filepath):
         """ Copying audio file """
-        print("Copying from {} to {}".format(in_filepath, out_filepath))
+        logger.info("Copying from {} to {}", in_filepath, out_filepath)
         shutil.copy(in_filepath, out_filepath)
 
     def get_replaygain(self, in_filepath):
@@ -118,7 +124,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     def transcode(self, in_filepath, out_filepath):
         """ Transcode audio file """
-        print("Transcoding from {} to {}".format(in_filepath, out_filepath))
+        logger.info("Transcoding from {} to {}", in_filepath, out_filepath)
         try:
             if not self._mode.startswith('replaygain'):
                 audiotools.open(in_filepath).convert(
@@ -134,7 +140,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
                     self._format.from_pcm(out_filepath, pcmreader,
                                           compression=self._compression)
                 else:
-                    print("No ReplayGain info found {}".format(in_filepath))
+                    logger.warning("No ReplayGain info found {}", in_filepath)
                     audiotools.open(in_filepath).convert(
                         out_filepath, self._format,
                         compression=self._compression)

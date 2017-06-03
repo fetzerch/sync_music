@@ -17,9 +17,15 @@
 
 """ HashDb """
 
+import logging
 import os
 import pickle
 import hashlib
+
+from . import util
+
+logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
+    logging.getLogger(__name__))
 
 
 class HashDb(object):
@@ -32,22 +38,23 @@ class HashDb(object):
     def load(self):
         """ Load hash database to disk """
         if os.path.exists(self.path):
-            print("Loading hash database from {}".format(self.path))
+            logger.info("Loading hash database from {}", self.path)
             hash_file = open(self.path, 'rb')
             self.database = pickle.load(hash_file, encoding="utf-8")
             hash_file.close()
         else:
-            print("Failed to load hash database from {}".format(self.path))
+            logger.info("No hash database file {}", self.path)
 
     def store(self):
         """ Store hash database to disk """
-        print("Storing hash database to {}".format(self.path))
+        logger.info("Storing hash database to {}", self.path)
         try:
             hash_file = open(self.path, 'wb')
             pickle.dump(self.database, hash_file)
             hash_file.close()
         except IOError:
-            print("Failed to write hash database to {}".format(self.path))
+            logger.error("Error: Failed to write hash database to {}",
+                         self.path)
 
     @classmethod
     def get_hash(cls, path):

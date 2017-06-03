@@ -139,9 +139,8 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         self._execute_sync_music()
 
         # First run: don't delete files
-        def query_no(message):
+        def query_no(_):
             """ Replacement for sync_music.util.query_yes_no """
-            print(message + ' (no)')
             return False
         with patch('sync_music.util.query_yes_no', side_effect=query_no):
             self._execute_sync_music(input_path, output_files)
@@ -154,9 +153,8 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         os.mkdir(os.path.join(self.output_path, 'withtags_mp3.mp3'))
 
         # Second run: delete files
-        def query_yes(message):
+        def query_yes(_):
             """ Replacement for sync_music.util.query_yes_no """
-            print(message + ' (yes)')
             return True
         output_files = [
             'stripped_mp3.mp3', 'sync_music.db'

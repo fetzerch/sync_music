@@ -17,9 +17,40 @@
 
 """ Utilities """
 
+import logging
 import os
 import sys
 import re
+
+
+# Utility classes that allow using the built-in logging facilities with
+# the newer string.format style instead of the '%' style.
+# From: https://docs.python.org/3/howto/logging-cookbook.html
+
+class LogBraceString(object):  # pylint: disable=too-few-public-methods
+    """ Log message that supports string.format() """
+    def __init__(self, fmt, args):
+        self.fmt = fmt
+        self.args = args
+
+    def __str__(self):
+        return self.fmt.format(*self.args)
+
+
+class LogStyleAdapter(logging.LoggerAdapter):
+    """ Logging StyleAdapter that supports string.format() """
+    def __init__(self, logger_instance, extra=None):
+        super(LogStyleAdapter, self).__init__(logger_instance, extra or {})
+
+    def log(self, level, msg, *args, **kwargs):
+        if self.isEnabledFor(level):  # pragma: no cover
+            msg, kwargs = self.process(msg, kwargs)
+            self.logger._log(  # pylint: disable=protected-access
+                level, LogBraceString(msg, args), (), **kwargs)
+
+
+logger = LogStyleAdapter(  # pylint: disable=invalid-name
+    logging.getLogger(__name__))
 
 
 def makepath(path):
@@ -56,7 +87,7 @@ def delete_empty_directories(path):
         return False
     if all([delete_empty_directories(os.path.join(path, filename))
             for filename in os.listdir(path)]):
-        print("Removing {}".format(path))
+        logger.info("Removing {}".format(path))
         os.rmdir(path)
         return True
     return False
