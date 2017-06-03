@@ -23,7 +23,7 @@ import traceback
 import argparse
 import configparser
 
-from multiprocessing import Pool  # pylint: disable=E0611
+from multiprocessing import Pool
 
 from . import util
 from .hashdb import HashDb
@@ -167,7 +167,7 @@ class SyncMusic():
             else:
                 pool = Pool(processes=self._args.jobs)
                 file_hashes = pool.map(self._process_file, files)
-        except:  # pylint: disable=W0702
+        except:  # pylint: disable=bare-except
             print(">>> traceback <<<")
             traceback.print_exc()
             print(">>> end of traceback <<<")

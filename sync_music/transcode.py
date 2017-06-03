@@ -27,10 +27,10 @@ import audiotools.replaygain
 import mutagen
 
 
-class Transcode(object):  # pylint: disable=R0902
+class Transcode(object):  # pylint: disable=too-many-instance-attributes
     """ Transcodes audio files """
 
-    def __init__(self,  # pylint: disable=R0913
+    def __init__(self,  # pylint: disable=too-many-arguments
                  mode='auto', replaygain_preamp_gain=0.0,
                  transcode=True, copy_tags=True,
                  composer_hack=False, discnumber_hack=False,
