@@ -32,7 +32,7 @@ from .actions import Copy
 from .actions import Skip
 from .transcode import Transcode
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
     logging.getLogger(__name__))
