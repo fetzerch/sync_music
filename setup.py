@@ -52,7 +52,7 @@ setup(
     version=VERSION,
     license='GPLv2+',
     description='Sync music library to external devices',
-    long_description=read('README.md'),
+    long_description=read('README.rst'),
     author='Christian Fetzer',
     author_email='fetzer.ch@gmail.com',
     url=URL,

@@ -1,5 +1,10 @@
-[![CircleCI Status](https://circleci.com/gh/fetzerch/sync_music.svg?style=shield)](https://circleci.com/gh/fetzerch/sync_music)
-[![Coverage Status](https://coveralls.io/repos/github/fetzerch/sync_music/badge.svg?branch=master)](https://coveralls.io/github/fetzerch/sync_music?branch=master)
+.. image:: https://circleci.com/gh/fetzerch/sync_music.svg?style=shield
+    :target: https://circleci.com/gh/fetzerch/sync_music
+    :alt: Circle CI Status
+
+.. image:: https://coveralls.io/repos/github/fetzerch/sync_music/badge.svg?branch=master
+    :target: https://coveralls.io/github/fetzerch/sync_music?branch=master
+    :alt: Coveralls Status
 
 sync_music - Sync music library to external devices
 ===================================================
@@ -14,7 +19,7 @@ format are transcoded to MP3. MP3 audio files and other files are
 transferred unchanged. Filenames are adapted where necessary to comply
 with the FAT32 format. If preferred, *sync_music* can also forcefully
 transcode all files in order to save disk space. Another operation mode
-applies volume normalization based on [ReplayGain] tags.
+applies volume normalization based on ReplayGain_ tags.
 
 Transcoding is a time consuming operation, therefore the first run of
 *sync_music* can take several minutes. In subsequent runs however, it will
@@ -30,58 +35,60 @@ Dependencies
 ------------
 
 - Python 3.5
-- [Python Audio Tools] >= 3.0 (for transcoding to MP3)
-- [Mutagen] >= 1.29 (for tag manipulation)
+- `Python Audio Tools`_ >= 3.0 (for transcoding to MP3)
+- Mutagen_ >= 1.29 (for tag manipulation)
 
 Installation
 ------------
 
-The first step is to install [Python Audio Tools] which depends on a couple of
+The first step is to install `Python Audio Tools`_ which depends on a couple of
 native libraries and doesn't offer a PyPI package. On Ubuntu 16.04 or later
-there's an official package that can simply be installed using:
+there's an official package that can simply be installed using::
 
     # apt install audiotools
 
-As an alternative [Python Audio Tools] can be installed from source after the
-necessary native libraries are installed.
+As an alternative `Python Audio Tools`_ can be installed from source after the
+necessary native libraries are installed::
 
     # apt install python3-dev lame libmp3lame-dev libmpg123-dev libvorbis-dev
     # pip3 install https://github.com/tuffy/python-audio-tools/archive/master.zip
 
-Then *sync_music* can be installed from PyPI with:
+Then *sync_music* can be installed from PyPI with::
 
     # pip3 install sync_music
 
-The following command installs the current development version:
+The following command installs the current development version::
 
     # pip3 install https://github.com/fetzerch/sync_music/archive/master.zip
 
 Usage
 -----
 
-### Quick start
+Quick start
+^^^^^^^^^^^
 
 The following basic command synchronizes all audio files from the source to the
-destination directory:
+destination directory::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER>
 
 Additionally M3U playlist syncing can be enabled by specifying the path to the
-playlists:
+playlists::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --playlist-src=<FOLDER>
 
 Besides that *sync_music* supports a number of advanced options. A full list of
-supported options is available in the built in help message:
+supported options is available in the built in help message::
 
     sync_music --help
 
-### Transcoding
+Transcoding
+^^^^^^^^^^^
 
 The operation mode can be changed with the `--mode` parameter.
 
 In *transcode* mode MP3 files are transcoded as well (instead of just copied to
-the destination):
+the destination)::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=transcode
 
@@ -90,15 +97,16 @@ contains many 320kbps CBR MP3s as the target rate is 190kbps VBR. The drawback
 is that transcoding is slower and needs more CPU power.
 
 The *replaygain* and *replaygain-album* modes apply (track or album) based
-volume normalization from [ReplayGain] tags when transcoding.
+volume normalization from ReplayGain_ tags when transcoding::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=replaygain
 
-Transcoding modes require that the MP3 files can be decoded by [Python
-Audio Tools] without issues. Problematic input files can be analyzed and fixed
-for example with [MP3 Diags].
+Transcoding modes require that the MP3 files can be decoded by `Python
+Audio Tools`_ without issues. Problematic input files can be analyzed and fixed
+for example with `MP3 Diags`_.
 
-### Hacks
+Hacks
+^^^^^
 
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing
@@ -126,10 +134,10 @@ the Free Software Foundation; either version 2 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-[GNU General Public License](http://www.gnu.org/licenses/gpl-2.0.html)
+`GNU General Public License <http://www.gnu.org/licenses/gpl-2.0.html>`_
 for more details.
 
-[Python Audio Tools]: http://audiotools.sourceforge.net
-[MP3 Diags]: http://mp3diags.sourceforge.net
-[Mutagen]: https://mutagen.readthedocs.io
-[ReplayGain]: https://en.wikipedia.org/wiki/ReplayGain
+.. _`Python Audio Tools`: http://audiotools.sourceforge.net
+.. _`MP3 Diags`: http://mp3diags.sourceforge.net
+.. _Mutagen: https://mutagen.readthedocs.io
+.. _ReplayGain: https://en.wikipedia.org/wiki/ReplayGain
