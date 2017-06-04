@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Utilities """
+"""Utilities."""
 
 import logging
 import os
@@ -28,7 +28,7 @@ import re
 # From: https://docs.python.org/3/howto/logging-cookbook.html
 
 class LogBraceString(object):  # pylint: disable=too-few-public-methods
-    """ Log message that supports string.format() """
+    """Log message that supports string.format()."""
     def __init__(self, fmt, args):
         self.fmt = fmt
         self.args = args
@@ -38,7 +38,7 @@ class LogBraceString(object):  # pylint: disable=too-few-public-methods
 
 
 class LogStyleAdapter(logging.LoggerAdapter):
-    """ Logging StyleAdapter that supports string.format() """
+    """Logging StyleAdapter that supports string.format()."""
     def __init__(self, logger_instance, extra=None):
         super(LogStyleAdapter, self).__init__(logger_instance, extra or {})
 
@@ -54,12 +54,12 @@ logger = LogStyleAdapter(  # pylint: disable=invalid-name
 
 
 def makepath(path):
-    """ Convert relative path into absolute path """
+    """Convert relative path into absolute path."""
     return os.path.abspath(os.path.expanduser(path))
 
 
 def list_all_files(path):
-    """ Get a list with relative paths for all files in the given path """
+    """Get a list with relative paths for all files in the given path."""
     all_files = []
     for dirpath, dirs, filenames in os.walk(path):
         # Don't process hidden files
@@ -73,7 +73,7 @@ def list_all_files(path):
 
 
 def ensure_directory_exists(path):
-    """ Ensure that the given path exists """
+    """Ensure that the given path exists."""
     try:
         if not os.path.exists(path):
             os.makedirs(path)
@@ -82,7 +82,7 @@ def ensure_directory_exists(path):
 
 
 def delete_empty_directories(path):
-    """ Recursively remove empty directories """
+    """Recursively remove empty directories."""
     if not os.path.isdir(path):
         return False
     if all([delete_empty_directories(os.path.join(path, filename))
@@ -94,12 +94,12 @@ def delete_empty_directories(path):
 
 
 def correct_path_fat32(filename):
-    """ Replace illegal characters in FAT32 filenames with '_' """
+    """Replace illegal characters in FAT32 filenames with '_'."""
     return re.sub(r'[\\|:|*|?|"|<|>|\|]', '_', filename)
 
 
 def query_yes_no(question):  # pragma: no cover
-    """ Ask a yes/no question, yes being the default """
+    """Ask a yes/no question, yes being the default."""
     while 1:
         sys.stdout.write(question + ' [Y/n]: ')
         choice = input().lower()

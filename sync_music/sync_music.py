@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" sync_music - Sync music library to external device """
+"""sync_music - Sync music library to external device."""
 
 import os
 import codecs
@@ -39,10 +39,10 @@ logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
 
 
 class SyncMusic():
-    """ sync_music - Sync music library to external device """
+    """sync_music - Sync music library to external device."""
 
     def __init__(self, args):
-        """ Initialize SyncMusic """
+        """Initialize SyncMusic."""
         logger.info(__doc__)
         logger.info("")
         self._args = args
@@ -66,7 +66,7 @@ class SyncMusic():
             tracknumber_hack=self._args.tracknumber_hack)
 
     def _process_file(self, current_file):
-        """ Process single file
+        """Process single file.
 
         :param current_file: tuple:
             (file_index, total_files, in_filename, action)
@@ -106,7 +106,7 @@ class SyncMusic():
         return None
 
     def _get_file_action(self, in_filename):
-        """ Determine the action for the given file """
+        """Determine the action for the given file."""
         extension = os.path.splitext(in_filename)[1]
         if extension in ['.flac', '.ogg', '.mp3']:
             if self._args.mode == 'copy':
@@ -117,8 +117,8 @@ class SyncMusic():
         return self._action_skip
 
     def _clean_up_missing_files(self):
-        """ Remove files in the destination, where the source file doesn't
-            exist anymore
+        """Remove files in the destination, where the source file doesn't
+           exist anymore.
         """
         logger.info("Cleaning up missing files")
         files = [(k, v[0]) for k, v in self._hashdb.database.items()]
@@ -140,12 +140,12 @@ class SyncMusic():
                     del self._hashdb.database[in_filename]
 
     def _clean_up_empty_directories(self):
-        """ Remove empty directories in the destination """
+        """Remove empty directories in the destination."""
         logger.info("Cleaning up empty directories")
         util.delete_empty_directories(self._args.audio_dest)
 
     def sync_audio(self):
-        """ Sync audio """
+        """Sync audio."""
         self._hashdb.load()
 
         # Create a list of all tracks ordered by their last modified time stamp
@@ -185,7 +185,7 @@ class SyncMusic():
         self._hashdb.store()
 
     def sync_playlists(self):
-        """ Sync m3u playlists """
+        """Sync m3u playlists."""
         for dirpath, _, filenames in os.walk(self._args.playlist_src):
             relpath = os.path.relpath(dirpath, self._args.playlist_src)
             for filename in filenames:
@@ -198,7 +198,7 @@ class SyncMusic():
                         logger.error("Error: {}", err)
 
     def _sync_playlist(self, filename):
-        """ Sync playlist """
+        """Sync playlist."""
         logger.info("Syncing playlist {}", filename)
         srcpath = os.path.join(self._args.playlist_src, filename)
         destpath = os.path.join(self._args.audio_dest, filename)
@@ -230,7 +230,7 @@ class SyncMusic():
 
 
 def load_settings(arguments=None):  # pylint: disable=too-many-locals
-    """ Load settings """
+    """Load settings."""
     # ArgumentParser 1: Get config file (disable help)
     config_parser = argparse.ArgumentParser(
         description=__doc__,
@@ -348,7 +348,7 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
 
 
 def main():  # pragma: no cover
-    """ sync_music - Sync music library to external device """
+    """sync_music - Sync music library to external device."""
     args = load_settings()
 
     rootlogger = logging.getLogger()

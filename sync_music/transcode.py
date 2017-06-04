@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Transcode action """
+"""Transcode action."""
 
 import base64
 import collections
@@ -34,7 +34,7 @@ logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
 
 
 class Transcode(object):  # pylint: disable=too-many-instance-attributes
-    """ Transcodes audio files """
+    """Transcodes audio files."""
 
     def __init__(self,  # pylint: disable=too-many-arguments
                  mode='auto', replaygain_preamp_gain=0.0,
@@ -79,11 +79,11 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
         logger.info("")
 
     def get_out_filename(self, path):
-        """ Determine output file path """
+        """Determine output file path."""
         return os.path.splitext(path)[0] + '.' + self._format.SUFFIX
 
     def execute(self, in_filepath, out_filepath):
-        """ Executes action """
+        """Executes action."""
         if self._transcode:
             if self._mode == 'auto':
                 if (os.path.splitext(in_filepath)[1] !=
@@ -99,12 +99,12 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def copy(cls, in_filepath, out_filepath):
-        """ Copying audio file """
+        """Copying audio file."""
         logger.info("Copying from {} to {}", in_filepath, out_filepath)
         shutil.copy(in_filepath, out_filepath)
 
     def get_replaygain(self, in_filepath):
-        """ Read ReplayGain info from tags """
+        """Read ReplayGain info from tags."""
         in_file = mutagen.File(in_filepath)
         tag_prefix = 'TXXX:' if isinstance(in_file, mutagen.mp3.MP3) else ''
         rp_info = collections.namedtuple('ReplayGainInfo', ['gain', 'peak'])
@@ -123,7 +123,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
             return None
 
     def transcode(self, in_filepath, out_filepath):
-        """ Transcode audio file """
+        """Transcode audio file."""
         logger.info("Transcoding from {} to {}", in_filepath, out_filepath)
         try:
             if not self._mode.startswith('replaygain'):
@@ -149,7 +149,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
                           .format(in_filepath, err))
 
     def copy_tags(self, in_filepath, out_filepath):
-        """ Copy tags """
+        """Copy tags."""
         in_file = mutagen.File(in_filepath)
 
         # Tags are converted to ID3 format. If the output format is changed
@@ -196,7 +196,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def copy_vorbis_to_id3(cls, src_tags, dest_tags):
-        """ Copy tags in vorbis comments (ogg, flac) to ID3 format """
+        """Copy tags in vorbis comments (ogg, flac) to ID3 format."""
         tagtable = {
             'album': mutagen.id3.TALB,
             'artist': mutagen.id3.TPE1,
@@ -242,7 +242,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def copy_vorbis_picture_to_id3(cls, in_file, dest_tags):
-        """ Copy pictures from vorbis comments to ID3 format """
+        """Copy pictures from vorbis comments to ID3 format."""
         pictures = []
         try:  # Flac
             pictures.extend(in_file.pictures)
@@ -262,7 +262,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def copy_id3_to_id3(cls, src_tags, dest_tags):
-        """ Copy tags from ID3 to ID3 """
+        """Copy tags from ID3 to ID3."""
         taglist = [
             'TALB',
             'TPE1',
@@ -292,7 +292,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def copy_folder_image_to_id3(cls, in_filename, dest_tags):
-        """ Copy folder.jpg to ID3 tag """
+        """Copy folder.jpg to ID3 tag."""
         if 'APIC:' not in dest_tags:
             image = os.path.join(os.path.dirname(in_filename), 'folder.jpg')
             if os.path.exists(image):
@@ -303,13 +303,13 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def apply_composer_hack(cls, tags):
-        """ Copy the albumartist (TPE2) into the composer field (TCOM) """
+        """Copy the albumartist (TPE2) into the composer field (TCOM)."""
         if 'TPE2' in tags:
             tags.add(mutagen.id3.TCOM(encoding=3, text=tags['TPE2'].text))
 
     @classmethod
     def apply_disknumber_hack(cls, tags):
-        """ Extend album field by disc number """
+        """Extend album field by disc number."""
         if 'TALB' in tags and 'TPOS' in tags and not tags['TPOS'] == '1':
             tags.add(mutagen.id3.TALB(
                 encoding=tags['TALB'].encoding,
@@ -317,7 +317,7 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
 
     @classmethod
     def apply_tracknumber_hack(cls, tags):
-        """ Remove track total from track number """
+        """Remove track total from track number."""
         if 'TRCK' in tags:
             track_string = tags['TRCK'].text[0].split('/')[0]
             try:

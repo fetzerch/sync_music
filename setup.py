@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Packaging for sync_music """
+"""Packaging for sync_music."""
 
 import io
 import os
@@ -28,7 +28,7 @@ verify_interpreter_version()
 
 
 def read(*names, **kwargs):
-    """ Read file relative to the directory where this file is located """
+    """Read file relative to the directory where this file is located."""
     return io.open(
         os.path.join(os.path.dirname(__file__), *names),
         encoding=kwargs.get('encoding', 'utf8')
@@ -36,7 +36,7 @@ def read(*names, **kwargs):
 
 
 def find_version(*file_paths):
-    """ Get version number from file """
+    """Get version number from file."""
     version_file = read(*file_paths)
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
                               version_file, re.M)

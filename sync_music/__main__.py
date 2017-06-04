@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" sync_music - Sync music library to external device """  # pragma: no cover
+"""sync_music - Sync music library to external device."""  # pragma: no cover
 
 from .sync_music import main  # pragma: no cover
 main()  # pragma: no cover

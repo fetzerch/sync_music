@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" HashDb """
+"""HashDb."""
 
 import logging
 import os
@@ -29,14 +29,14 @@ logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
 
 
 class HashDb(object):
-    """ Lightwight database for file hash values """
+    """Lightwight database for file hash values."""
 
     def __init__(self, path):
         self.database = {}
         self.path = path
 
     def load(self):
-        """ Load hash database to disk """
+        """Load hash database to disk."""
         if os.path.exists(self.path):
             logger.info("Loading hash database from {}", self.path)
             hash_file = open(self.path, 'rb')
@@ -46,7 +46,7 @@ class HashDb(object):
             logger.info("No hash database file {}", self.path)
 
     def store(self):
-        """ Store hash database to disk """
+        """Store hash database to disk."""
         logger.info("Storing hash database to {}", self.path)
         try:
             hash_file = open(self.path, 'wb')
@@ -58,7 +58,7 @@ class HashDb(object):
 
     @classmethod
     def get_hash(cls, path):
-        """ Calculate hash value for the given path """
+        """Calculate hash value for the given path."""
         hash_file = open(path, 'rb')
         hash_buffer = hash_file.read(4096)
         hash_file.close()

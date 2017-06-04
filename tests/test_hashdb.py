@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Tests the HashDb implementation """
+"""Tests the HashDb implementation."""
 
 from nose.tools import eq_
 
@@ -25,25 +25,25 @@ from . import util
 
 
 class TestHashDb(object):
-    """ Tests the HashDb implementation """
+    """Tests the HashDb implementation."""
     # Format: { in_filename : (out_filename, hash) }
     data = {'test1': ('test2', 'test3'),
             'test_utf8': ('test_äöüß', 'test_ÄÖÜß')}
     filename = 'test_hashdb.db'
 
     def teardown(self):
-        """ Remove test file after each testcase """
+        """Remove test file after each testcase."""
         util.silentremove(self.filename)
 
     @staticmethod
     def test_nonexistent():
-        """ Test non existent file """
+        """Test non existent file."""
         hashdb = HashDb('/proc/nonexistent')
         hashdb.load()
         eq_(hashdb.database, {})
 
     def test_writeerror(self):
-        """ Test write error """
+        """Test write error."""
         hashdb = HashDb('/proc/nonexistent')
         hashdb.database = self.data
         hashdb.store()
@@ -52,7 +52,7 @@ class TestHashDb(object):
         eq_(hashdb.database, {})
 
     def test_storeandload(self):
-        """ Test normal operation """
+        """Test normal operation."""
         hashdb = HashDb('test_hashdb.db')
         hashdb.database = self.data
         hashdb.store()
@@ -60,7 +60,7 @@ class TestHashDb(object):
         eq_(hashdb.database, self.data)
 
     def test_hash(self):
-        """ Test file hashing """
+        """Test file hashing."""
         with open(self.filename, 'wb') as out_file:
             out_file.write(b"TEST")
         eq_(HashDb.get_hash(self.filename),
