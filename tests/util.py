@@ -1,5 +1,5 @@
 # music_sync - Sync music library to external device
-# Copyright (C) 2013-2015 Christian Fetzer
+# Copyright (C) 2013-2017 Christian Fetzer
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,14 +15,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Utilities for testing """
+"""Utilities for testing."""
 
 import os
 import shutil
 
 
 def silentremove(path):
-    """ Remove a file/directory that might not exist """
+    """Remove a file/directory that might not exist."""
     if os.path.isfile(path):
         os.remove(path)
     elif os.path.isdir(path):
@@ -30,16 +30,16 @@ def silentremove(path):
 
 
 class TemporaryOutputPathFixture(object):
-    """ Fixture that creates a temporary directory before a test runs and
-        removes it afterwards """
+    """Fixture that creates a temporary directory before a test runs and
+       removes it afterwards."""
     def __init__(self, temporary_path):
         self.temporary_path = temporary_path
 
     def setup(self):
-        """ Create output directory """
+        """Create output directory."""
         silentremove(self.temporary_path)
         os.mkdir(self.temporary_path)
 
     def teardown(self):
-        """ Silently remove output directory """
+        """Silently remove output directory."""
         silentremove(self.temporary_path)

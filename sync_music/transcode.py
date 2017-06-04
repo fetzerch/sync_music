@@ -1,5 +1,5 @@
 # sync_music - Sync music library to external device
-# Copyright (C) 2013-2015 Christian Fetzer
+# Copyright (C) 2013-2017 Christian Fetzer
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,10 +15,11 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Transcode action """
+"""Transcode action."""
 
 import base64
 import collections
+import logging
 import os
 import shutil
 
@@ -26,11 +27,16 @@ import audiotools
 import audiotools.replaygain
 import mutagen
 
+from . import util
 
-class Transcode(object):  # pylint: disable=R0902
-    """ Transcodes audio files """
+logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
+    logging.getLogger(__name__))
 
-    def __init__(self,  # pylint: disable=R0913
+
+class Transcode(object):  # pylint: disable=too-many-instance-attributes
+    """Transcodes audio files."""
+
+    def __init__(self,  # pylint: disable=too-many-arguments
                  mode='auto', replaygain_preamp_gain=0.0,
                  transcode=True, copy_tags=True,
                  composer_hack=False, discnumber_hack=False,
@@ -39,45 +45,45 @@ class Transcode(object):  # pylint: disable=R0902
         self._format = audiotools.MP3Audio
         self._compression = 'standard'
 
-        print("Transcoding settings:")
-        print(" - Audiotools " + audiotools.VERSION)
-        print(" - Mutagen " + mutagen.version_string)
+        logger.info("Transcoding settings:")
+        logger.info(" - Audiotools {}".format(audiotools.VERSION))
+        logger.info(" - Mutagen {}".format(mutagen.version_string))
         self._mode = mode
         self._transcode = transcode
         if transcode and mode in ['auto', 'transcode', 'replaygain',
                                   'replaygain-album']:
-            print(" - Converting to {} in quality {}".format(
+            logger.info(" - Converting to {} in quality {}".format(
                 self._format.NAME, self._compression))
             self._replaygain_preamp_gain = replaygain_preamp_gain
             if mode.startswith('replaygain') and replaygain_preamp_gain != 0.0:
-                print(" - Applying ReplayGain pre-amp gain {}".format(
+                logger.info(" - Applying ReplayGain pre-amp gain {}".format(
                     replaygain_preamp_gain))
         else:
-            print(" - Skipping transcoding")
+            logger.info(" - Skipping transcoding")
 
         self._copy_tags = copy_tags
         if copy_tags:
-            print(" - Copying tags")
+            logger.info(" - Copying tags")
         else:
-            print(" - Skipping copying tags")
+            logger.info(" - Skipping copying tags")
 
         self._composer_hack = composer_hack
         if composer_hack:
-            print(" - Writing albumartist into composer field")
+            logger.info(" - Writing albumartist into composer field")
         self._discnumber_hack = discnumber_hack
         if discnumber_hack:
-            print(" - Extending album field by disc number")
+            logger.info(" - Extending album field by disc number")
         self._tracknumber_hack = tracknumber_hack
         if tracknumber_hack:
-            print(" - Remove track total from track number")
-        print("")
+            logger.info(" - Remove track total from track number")
+        logger.info("")
 
     def get_out_filename(self, path):
-        """ Determine output file path """
+        """Determine output file path."""
         return os.path.splitext(path)[0] + '.' + self._format.SUFFIX
 
     def execute(self, in_filepath, out_filepath):
-        """ Executes action """
+        """Executes action."""
         if self._transcode:
             if self._mode == 'auto':
                 if (os.path.splitext(in_filepath)[1] !=
@@ -93,12 +99,12 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def copy(cls, in_filepath, out_filepath):
-        """ Copying audio file """
-        print("Copying from {} to {}".format(in_filepath, out_filepath))
+        """Copying audio file."""
+        logger.info("Copying from {} to {}", in_filepath, out_filepath)
         shutil.copy(in_filepath, out_filepath)
 
     def get_replaygain(self, in_filepath):
-        """ Read ReplayGain info from tags """
+        """Read ReplayGain info from tags."""
         in_file = mutagen.File(in_filepath)
         tag_prefix = 'TXXX:' if isinstance(in_file, mutagen.mp3.MP3) else ''
         rp_info = collections.namedtuple('ReplayGainInfo', ['gain', 'peak'])
@@ -117,8 +123,8 @@ class Transcode(object):  # pylint: disable=R0902
             return None
 
     def transcode(self, in_filepath, out_filepath):
-        """ Transcode audio file """
-        print("Transcoding from {} to {}".format(in_filepath, out_filepath))
+        """Transcode audio file."""
+        logger.info("Transcoding from {} to {}", in_filepath, out_filepath)
         try:
             if not self._mode.startswith('replaygain'):
                 audiotools.open(in_filepath).convert(
@@ -134,7 +140,7 @@ class Transcode(object):  # pylint: disable=R0902
                     self._format.from_pcm(out_filepath, pcmreader,
                                           compression=self._compression)
                 else:
-                    print("No ReplayGain info found {}".format(in_filepath))
+                    logger.warning("No ReplayGain info found {}", in_filepath)
                     audiotools.open(in_filepath).convert(
                         out_filepath, self._format,
                         compression=self._compression)
@@ -143,7 +149,7 @@ class Transcode(object):  # pylint: disable=R0902
                           .format(in_filepath, err))
 
     def copy_tags(self, in_filepath, out_filepath):
-        """ Copy tags """
+        """Copy tags."""
         in_file = mutagen.File(in_filepath)
 
         # Tags are converted to ID3 format. If the output format is changed
@@ -190,7 +196,7 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def copy_vorbis_to_id3(cls, src_tags, dest_tags):
-        """ Copy tags in vorbis comments (ogg, flac) to ID3 format """
+        """Copy tags in vorbis comments (ogg, flac) to ID3 format."""
         tagtable = {
             'album': mutagen.id3.TALB,
             'artist': mutagen.id3.TPE1,
@@ -236,7 +242,7 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def copy_vorbis_picture_to_id3(cls, in_file, dest_tags):
-        """ Copy pictures from vorbis comments to ID3 format """
+        """Copy pictures from vorbis comments to ID3 format."""
         pictures = []
         try:  # Flac
             pictures.extend(in_file.pictures)
@@ -256,7 +262,7 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def copy_id3_to_id3(cls, src_tags, dest_tags):
-        """ Copy tags from ID3 to ID3 """
+        """Copy tags from ID3 to ID3."""
         taglist = [
             'TALB',
             'TPE1',
@@ -286,7 +292,7 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def copy_folder_image_to_id3(cls, in_filename, dest_tags):
-        """ Copy folder.jpg to ID3 tag """
+        """Copy folder.jpg to ID3 tag."""
         if 'APIC:' not in dest_tags:
             image = os.path.join(os.path.dirname(in_filename), 'folder.jpg')
             if os.path.exists(image):
@@ -297,13 +303,13 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def apply_composer_hack(cls, tags):
-        """ Copy the albumartist (TPE2) into the composer field (TCOM) """
+        """Copy the albumartist (TPE2) into the composer field (TCOM)."""
         if 'TPE2' in tags:
             tags.add(mutagen.id3.TCOM(encoding=3, text=tags['TPE2'].text))
 
     @classmethod
     def apply_disknumber_hack(cls, tags):
-        """ Extend album field by disc number """
+        """Extend album field by disc number."""
         if 'TALB' in tags and 'TPOS' in tags and not tags['TPOS'] == '1':
             tags.add(mutagen.id3.TALB(
                 encoding=tags['TALB'].encoding,
@@ -311,7 +317,7 @@ class Transcode(object):  # pylint: disable=R0902
 
     @classmethod
     def apply_tracknumber_hack(cls, tags):
-        """ Remove track total from track number """
+        """Remove track total from track number."""
         if 'TRCK' in tags:
             track_string = tags['TRCK'].text[0].split('/')[0]
             try:

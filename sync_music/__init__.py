@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" sync_music - Sync music library to external device """
+"""sync_music - Sync music library to external device."""
 
 import sys
 
@@ -24,7 +24,7 @@ from pkg_resources import parse_version
 
 
 def verify_interpreter_version():
-    """ Verify the Pyhton interpreter version. """
+    """Verify the Pyhton interpreter version."""
     minversion = '3.5'
     version = python_version()
     if parse_version(version) < parse_version(minversion):  # pragma: no cover

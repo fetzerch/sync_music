@@ -1,5 +1,5 @@
 # sync_music - Sync music library to external device
-# Copyright (C) 2013-2015 Christian Fetzer
+# Copyright (C) 2013-2017 Christian Fetzer
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,40 +15,40 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-""" Basic actions """
+"""Basic actions."""
 
 import shutil
 
 
 class Copy(object):
-    """ Copy action simply copies file """
+    """Copy action simply copies file."""
 
     def __init__(self):
         self.name = "Copying"
 
     @classmethod
     def get_out_filename(cls, path):
-        """ Determine output file path """
+        """Determine output file path."""
         return path
 
     @classmethod
     def execute(cls, in_filepath, out_filepath):
-        """ Executes action """
+        """Executes action."""
         shutil.copy(in_filepath, out_filepath)
 
 
 class Skip(object):
-    """ Skip action does nothing """
+    """Skip action does nothing."""
 
     def __init__(self):
         self.name = "Skipping"
 
     @classmethod
     def get_out_filename(cls, _):
-        """ Determine output file path """
+        """Determine output file path."""
         return None
 
     @classmethod
     def execute(cls, in_filepath, out_filepath):  # pragma: no cover
-        """ Executes action """
+        """Executes action."""
         pass
