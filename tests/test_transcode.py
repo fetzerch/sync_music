@@ -114,10 +114,16 @@ class TestTranscode(util.TemporaryOutputPathFixture):
             in_filename)
         self.execute_transcode(Transcode(), in_filename=in_filename)
 
+    def test_transcode_artist_hack(self):
+        """Tests transcoding with albumartist to artist hack enabled."""
+        self.execute_transcode(Transcode(albumartist_artist_hack=True))
+        self.execute_transcode(Transcode(albumartist_artist_hack=True),
+                               in_filename=self.in_filename_mp3empty)
+
     def test_transcode_composer_hack(self):
-        """Tests transcoding with composer hack enabled."""
-        self.execute_transcode(Transcode(composer_hack=True))
-        self.execute_transcode(Transcode(composer_hack=True),
+        """Tests transcoding with albumartist to composer hack enabled."""
+        self.execute_transcode(Transcode(albumartist_composer_hack=True))
+        self.execute_transcode(Transcode(albumartist_composer_hack=True),
                                in_filename=self.in_filename_mp3empty)
 
     def test_transcode_discnumber_hack(self):

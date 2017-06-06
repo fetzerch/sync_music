@@ -61,7 +61,8 @@ class SyncMusic():
             replaygain_preamp_gain=self._args.replaygain_preamp_gain,
             transcode=not self._args.disable_file_processing,
             copy_tags=not self._args.disable_tag_processing,
-            composer_hack=self._args.albumartist_hack,
+            albumartist_artist_hack=self._args.albumartist_artist_hack,
+            albumartist_composer_hack=self._args.albumartist_composer_hack,
             discnumber_hack=self._args.discnumber_hack,
             tracknumber_hack=self._args.tracknumber_hack)
 
@@ -312,7 +313,10 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
     parser_hacks = parser.add_argument_group(
         "Hacks", "Modify target files to work around player shortcomings")
     parser_hacks.add_argument(
-        '--albumartist-hack', action='store_true',
+        '--albumartist-artist-hack', action='store_true',
+        help="write album artist into artist field")
+    parser_hacks.add_argument(
+        '--albumartist-composer-hack', action='store_true',
         help="write album artist into composer field")
     parser_hacks.add_argument(
         '--discnumber-hack', action='store_true',
@@ -326,7 +330,8 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
 
     # Check required arguments and make absolute paths
     try:
-        if settings.mode == 'copy' and (settings.albumartist_hack or
+        if settings.mode == 'copy' and (settings.albumartist_artist_hack or
+                                        settings.albumartist_composer_hack or
                                         settings.discnumber_hack or
                                         settings.tracknumber_hack):
             parser.error("hacks cannot be used in copy mode")
