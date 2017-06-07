@@ -310,8 +310,8 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def apply_albumartist_artist_hack(cls, tags):
         """Copy the albumartist (TPE2) into the artist field (TPE1)."""
-        if 'TPE2' in tags:
-            tags.add(mutagen.id3.TPE1(encoding=3, text=tags['TPE2'].text))
+        artist = tags['TPE2'].text if 'TPE2' in tags else 'Various Artists'
+        tags.add(mutagen.id3.TPE1(encoding=3, text=artist))
 
     @classmethod
     def apply_albumartist_composer_hack(cls, tags):
