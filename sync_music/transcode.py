@@ -39,8 +39,9 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
     def __init__(self,  # pylint: disable=too-many-arguments
                  mode='auto', replaygain_preamp_gain=0.0,
                  transcode=True, copy_tags=True,
-                 composer_hack=False, discnumber_hack=False,
-                 tracknumber_hack=False):
+                 albumartist_artist_hack=False,
+                 albumartist_composer_hack=False,
+                 discnumber_hack=False, tracknumber_hack=False):
         self.name = "Processing"
         self._format = audiotools.MP3Audio
         self._compression = 'standard'
@@ -67,8 +68,11 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
         else:
             logger.info(" - Skipping copying tags")
 
-        self._composer_hack = composer_hack
-        if composer_hack:
+        self._albumartist_artist_hack = albumartist_artist_hack
+        if albumartist_artist_hack:
+            logger.info(" - Writing albumartist into artist field")
+        self._albumartist_composer_hack = albumartist_composer_hack
+        if albumartist_composer_hack:
             logger.info(" - Writing albumartist into composer field")
         self._discnumber_hack = discnumber_hack
         if discnumber_hack:
@@ -176,8 +180,10 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
         self.copy_folder_image_to_id3(in_filepath, mp3_file.tags)
 
         # Apply hacks
-        if self._composer_hack:
-            self.apply_composer_hack(mp3_file.tags)
+        if self._albumartist_artist_hack:
+            self.apply_albumartist_artist_hack(mp3_file.tags)
+        if self._albumartist_composer_hack:
+            self.apply_albumartist_composer_hack(mp3_file.tags)
         if self._discnumber_hack:
             self.apply_disknumber_hack(mp3_file.tags)
         if self._tracknumber_hack:
@@ -302,7 +308,13 @@ class Transcode(object):  # pylint: disable=too-many-instance-attributes
                 dest_tags.add(mutagen.id3.APIC(3, 'image/jpg', 3, '', img))
 
     @classmethod
-    def apply_composer_hack(cls, tags):
+    def apply_albumartist_artist_hack(cls, tags):
+        """Copy the albumartist (TPE2) into the artist field (TPE1)."""
+        artist = tags['TPE2'].text if 'TPE2' in tags else 'Various Artists'
+        tags.add(mutagen.id3.TPE1(encoding=3, text=artist))
+
+    @classmethod
+    def apply_albumartist_composer_hack(cls, tags):
         """Copy the albumartist (TPE2) into the composer field (TCOM)."""
         if 'TPE2' in tags:
             tags.add(mutagen.id3.TCOM(encoding=3, text=tags['TPE2'].text))

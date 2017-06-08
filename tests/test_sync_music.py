@@ -54,7 +54,7 @@ class TestSyncMusicSettings(object):
         """Tests loading of settings with force copy and hacks."""
         argv = ['--audio-src', '/tmp',
                 '--audio-dest', '/tmp',
-                '--mode=copy', '--albumartist-hack']
+                '--mode=copy', '--albumartist-artist-hack']
         load_settings(argv)
 
     @staticmethod
@@ -188,7 +188,8 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
     def test_reference_hacks(self):
         """Test reference folder with hacks."""
         self._execute_sync_music(arguments=[
-            '--albumartist-hack', '--discnumber-hack', '--tracknumber-hack'
+            '--albumartist-artist-hack', '--albumartist-composer-hack',
+            '--discnumber-hack', '--tracknumber-hack'
         ])
 
     def test_reference_exception(self):

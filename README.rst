@@ -108,10 +108,14 @@ for example with `MP3 Diags`_.
 Hacks
 ^^^^^
 
+Some media players don't properly support album artist tags. This restriction
+can be bypassed by writing the album artist information into the artist field.
+This can be enabled by adding the `--albumartist-artist-hack` parameter.
+
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
-enabled by adding the `--albumartist-hack` parameter.
+enabled by adding the `--albumartist-composer-hack` parameter.
 
 Some media players don't properly support disc number tags with tracks numbered
 starting with 1 for every disc. The user typically wants to group them by disc
