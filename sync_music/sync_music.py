@@ -173,7 +173,7 @@ class SyncMusic():
             else:
                 pool = Pool(processes=self._args.jobs)
                 file_hashes = pool.map(self._process_file, files)
-        except:  # pylint: disable=bare-except
+        except:  # noqa, pylint: disable=bare-except
             logger.error(">>> traceback <<<")
             logger.exception("Exception")
             logger.error(">>> end of traceback <<<")
