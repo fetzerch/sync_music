@@ -101,7 +101,7 @@ class SyncMusic():
                 action.execute(in_filepath, out_filepath)
             except IOError as err:
                 logger.error("Error: {}", err)
-                return
+                return None
             return (in_filename, out_filename, hash_current)
         logger.info("Skipping up to date file")
         return None
