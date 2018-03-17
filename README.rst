@@ -1,6 +1,6 @@
-.. image:: https://circleci.com/gh/fetzerch/sync_music.svg?style=shield
-    :target: https://circleci.com/gh/fetzerch/sync_music
-    :alt: Circle CI Status
+.. image:: https://travis-ci.org/fetzerch/sync_music.svg?branch=master
+    :target: https://travis-ci.org/fetzerch/sync_music
+    :alt: Travis CI Status
 
 .. image:: https://coveralls.io/repos/github/fetzerch/sync_music/badge.svg?branch=master
     :target: https://coveralls.io/github/fetzerch/sync_music?branch=master
