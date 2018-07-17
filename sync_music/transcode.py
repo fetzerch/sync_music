@@ -33,7 +33,7 @@ logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
     logging.getLogger(__name__))
 
 
-class Transcode(object):  # pylint: disable=too-many-instance-attributes
+class Transcode:  # pylint: disable=too-many-instance-attributes
     """Transcodes audio files."""
 
     def __init__(self,  # pylint: disable=too-many-arguments

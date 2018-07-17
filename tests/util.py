@@ -29,7 +29,7 @@ def silentremove(path):
         shutil.rmtree(path)
 
 
-class TemporaryOutputPathFixture(object):
+class TemporaryOutputPathFixture:
     """Fixture that creates a temporary directory before a test runs and
        removes it afterwards."""
     def __init__(self, temporary_path):

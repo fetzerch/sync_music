@@ -24,7 +24,7 @@ from sync_music.sync_music import HashDb
 from . import util
 
 
-class TestHashDb(object):
+class TestHashDb:
     """Tests the HashDb implementation."""
     # Format: { in_filename : (out_filename, hash) }
     data = {'test1': ('test2', 'test3'),

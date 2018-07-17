@@ -31,7 +31,7 @@ from sync_music.util import list_all_files
 from . import util
 
 
-class TestSyncMusicSettings(object):
+class TestSyncMusicSettings:
     """Tests sync_music load_settings function."""
 
     @staticmethod

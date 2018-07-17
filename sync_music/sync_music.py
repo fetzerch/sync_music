@@ -113,7 +113,7 @@ class SyncMusic():
             if self._args.mode == 'copy':
                 return self._action_copy
             return self._action_transcode
-        elif in_filename.endswith('folder.jpg'):
+        if in_filename.endswith('folder.jpg'):
             return self._action_copy
         return self._action_skip
 

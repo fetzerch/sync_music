@@ -27,7 +27,7 @@ import re
 # the newer string.format style instead of the '%' style.
 # From: https://docs.python.org/3/howto/logging-cookbook.html
 
-class LogBraceString(object):  # pylint: disable=too-few-public-methods
+class LogBraceString:  # pylint: disable=too-few-public-methods
     """Log message that supports string.format()."""
     def __init__(self, fmt, args):
         self.fmt = fmt

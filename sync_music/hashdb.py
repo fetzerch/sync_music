@@ -28,7 +28,7 @@ logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
     logging.getLogger(__name__))
 
 
-class HashDb(object):
+class HashDb:
     """Lightwight database for file hash values."""
 
     def __init__(self, path):

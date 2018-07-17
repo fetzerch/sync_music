@@ -20,7 +20,7 @@
 import shutil
 
 
-class Copy(object):
+class Copy:
     """Copy action simply copies file."""
 
     def __init__(self):
@@ -37,7 +37,7 @@ class Copy(object):
         shutil.copy(in_filepath, out_filepath)
 
 
-class Skip(object):
+class Skip:
     """Skip action does nothing."""
 
     def __init__(self):
@@ -46,7 +46,6 @@ class Skip(object):
     @classmethod
     def get_out_filename(cls, _):
         """Determine output file path."""
-        return None
 
     @classmethod
     def execute(cls, in_filepath, out_filepath):  # pragma: no cover
