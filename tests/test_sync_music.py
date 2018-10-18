@@ -20,42 +20,40 @@
 import os
 import shutil
 
-from unittest.mock import patch
-from nose.tools import eq_
-from nose.tools import raises
+from unittest import mock
+
+import pytest
 
 from sync_music.sync_music import SyncMusic
 from sync_music.sync_music import load_settings
 from sync_music.util import list_all_files
-
-from . import util
 
 
 class TestSyncMusicSettings:
     """Tests sync_music load_settings function."""
 
     @staticmethod
-    @raises(SystemExit)
     def test_noparams():
         """Tests loading of settings without parameters."""
-        load_settings('')
+        with pytest.raises(SystemExit):
+            load_settings('')
 
     @staticmethod
-    @raises(SystemExit)
     def test_nonexistent():
         """Tests loading of settings with incorrect paths."""
         argv = ['--audio-src', '/proc/nonexistingpath',
                 '--audio-dest', '/proc/nonexistingpath']
-        load_settings(argv)
+        with pytest.raises(SystemExit):
+            load_settings(argv)
 
     @staticmethod
-    @raises(SystemExit)
     def test_forcecopy_with_hacks():
         """Tests loading of settings with force copy and hacks."""
         argv = ['--audio-src', '/tmp',
                 '--audio-dest', '/tmp',
                 '--mode=copy', '--albumartist-artist-hack']
-        load_settings(argv)
+        with pytest.raises(SystemExit):
+            load_settings(argv)
 
     @staticmethod
     def test_configfile():
@@ -72,11 +70,11 @@ class TestSyncMusicSettings:
             os.remove(filename)
 
 
-class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
+class TestSyncMusicFiles():
     """Tests sync_music audio conversion."""
 
     input_path = 'tests/reference_data/regular'
-    output_path = '/tmp/sync_music'
+    output_path = None
 
     output_files = [
         'stripped_flac.mp3', 'stripped_mp3.mp3', 'stripped_ogg.mp3',
@@ -84,11 +82,12 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         'sync_music.db', 'folder.jpg', 'dir/folder.jpg'
     ]
 
-    def __init__(self):
-        super(TestSyncMusicFiles, self).__init__(self.output_path)
+    @pytest.fixture(autouse=True)
+    def init_output_path(self, tmpdir):
+        """Setup temporary output directory."""
+        self.output_path = str(tmpdir)
 
-    def _execute_sync_music(self, input_path=input_path,
-                            output_files=None,
+    def _execute_sync_music(self, input_path=input_path, output_files=None,
                             arguments=None, jobs=None):
         """Helper method to run sync_music tests."""
         if output_files is None:
@@ -100,12 +99,12 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         args.jobs = 1 if jobs is None else jobs
         sync_music = SyncMusic(args)
         sync_music.sync_audio()
-        eq_(set(list_all_files(self.output_path)), set(output_files))
+        assert set(list_all_files(self.output_path)) == set(output_files)
 
-    @raises(FileNotFoundError)
     def test_emptyfolder(self):
         """Test empty input folder."""
-        self._execute_sync_music(self.output_path, [])
+        with pytest.raises(FileNotFoundError):
+            self._execute_sync_music(self.output_path, [])
 
     def test_filenames_utf8(self):
         """Test UTF-8 input file names."""
@@ -142,7 +141,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         def query_no(_):
             """Replacement for sync_music.util.query_yes_no."""
             return False
-        with patch('sync_music.util.query_yes_no', side_effect=query_no):
+        with mock.patch('sync_music.util.query_yes_no', side_effect=query_no):
             self._execute_sync_music(input_path, output_files)
 
         # Delete a file also in output directory (to check double deletion)
@@ -159,7 +158,7 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
         output_files = [
             'stripped_mp3.mp3', 'sync_music.db'
         ]
-        with patch('sync_music.util.query_yes_no', side_effect=query_yes):
+        with mock.patch('sync_music.util.query_yes_no', side_effect=query_yes):
             self._execute_sync_music(input_path, output_files)
 
     def test_reference_multiprocessing(self):
@@ -192,24 +191,34 @@ class TestSyncMusicFiles(util.TemporaryOutputPathFixture):
             '--discnumber-hack', '--tracknumber-hack'
         ])
 
-    def test_reference_exception(self):
+    def test_reference_ioerror(self, mocker):
+        """Test reference folder with mocked IOError."""
+        mocker.patch('sync_music.transcode.Transcode.execute',
+                     side_effect=IOError('Mocked exception'))
+        mocker.patch('sync_music.actions.Copy.execute',
+                     side_effect=IOError('Mocked exception'))
+        self._execute_sync_music(output_files=['sync_music.db'])
+
+    def test_reference_exception(self, mocker):
         """Test reference folder with mocked random exception."""
-        with patch('sync_music.transcode.Transcode.execute',
-                   side_effect=Exception('Mocked exception')):
-            with patch('sync_music.actions.Copy.execute',
-                       side_effect=IOError('Mocked exception')):
-                self._execute_sync_music(output_files=['sync_music.db'])
+        mocker.patch('sync_music.transcode.Transcode.execute',
+                     side_effect=Exception('Mocked exception'))
+        mocker.patch('sync_music.actions.Copy.execute',
+                     side_effect=Exception('Mocked exception'))
+        self._execute_sync_music(output_files=['sync_music.db'])
 
 
-class TestSyncMusicPlaylists(util.TemporaryOutputPathFixture):
+class TestSyncMusicPlaylists():
     """Tests sync_music playlist conversion."""
 
     input_path = 'tests/reference_data/regular'
+    output_path = None
     playlist_path = 'tests/reference_data/playlists'
-    output_path = '/tmp/sync_music'
 
-    def __init__(self):
-        super(TestSyncMusicPlaylists, self).__init__(self.output_path)
+    @pytest.fixture(autouse=True)
+    def init_output_path(self, tmpdir):
+        """Setup temporary output directory."""
+        self.output_path = str(tmpdir)
 
     def _execute_sync_music(self, playlist_path=playlist_path):
         """Helper method to run sync_music tests."""

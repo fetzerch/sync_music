@@ -17,11 +17,11 @@
 
 """Tests the HashDb implementation."""
 
-from nose.tools import eq_
+import os
+
+import pytest
 
 from sync_music.sync_music import HashDb
-
-from . import util
 
 
 class TestHashDb:
@@ -29,18 +29,19 @@ class TestHashDb:
     # Format: { in_filename : (out_filename, hash) }
     data = {'test1': ('test2', 'test3'),
             'test_utf8': ('test_äöüß', 'test_ÄÖÜß')}
-    filename = 'test_hashdb.db'
 
-    def teardown(self):
-        """Remove test file after each testcase."""
-        util.silentremove(self.filename)
+    @staticmethod
+    @pytest.fixture()
+    def testfile(tmpdir):
+        """Setup test file in temporary directory."""
+        return os.path.join(str(tmpdir), 'test_hashdb.db')
 
     @staticmethod
     def test_nonexistent():
         """Test non existent file."""
         hashdb = HashDb('/proc/nonexistent')
         hashdb.load()
-        eq_(hashdb.database, {})
+        assert hashdb.database == {}
 
     def test_writeerror(self):
         """Test write error."""
@@ -49,19 +50,20 @@ class TestHashDb:
         hashdb.store()
         hashdb.database = {}
         hashdb.load()
-        eq_(hashdb.database, {})
+        assert hashdb.database == {}
 
-    def test_storeandload(self):
+    def test_storeandload(self, testfile):
         """Test normal operation."""
-        hashdb = HashDb('test_hashdb.db')
+        hashdb = HashDb(testfile)
         hashdb.database = self.data
         hashdb.store()
         hashdb.load()
-        eq_(hashdb.database, self.data)
+        assert hashdb.database == self.data
 
-    def test_hash(self):
+    @staticmethod
+    def test_hash(testfile):
         """Test file hashing."""
-        with open(self.filename, 'wb') as out_file:
+        with open(testfile, 'wb') as out_file:
             out_file.write(b"TEST")
-        eq_(HashDb.get_hash(self.filename),
-            '033bd94b1168d7e4f0d644c3c95e35bf')
+        assert HashDb.get_hash(testfile) == \
+            '033bd94b1168d7e4f0d644c3c95e35bf'
