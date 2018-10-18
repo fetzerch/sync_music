@@ -244,7 +244,7 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
     # Read default settings from config file
     if args.config_file is None:
         args.config_file = util.makepath('~/.sync_music')
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     config.read([args.config_file])
     try:
         defaults = dict(config.items("Defaults"))
