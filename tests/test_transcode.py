@@ -20,15 +20,12 @@
 import os
 import shutil
 
-from nose.tools import eq_
-from nose.tools import raises
+import pytest
 
 from sync_music.sync_music import Transcode
 
-from . import util
 
-
-class TestTranscode(util.TemporaryOutputPathFixture):
+class TestTranscode():
     """Tests the transcoding implementation."""
 
     in_filename_flac = 'withtags.flac'
@@ -44,19 +41,20 @@ class TestTranscode(util.TemporaryOutputPathFixture):
     out_filename = 'withtags.mp3'
     img_filename = 'folder.jpg'
     input_path = 'tests/reference_data/audiofiles'
-    output_path = '/tmp/sync_music'
+    output_path = None
 
-    def __init__(self):
-        super(TestTranscode, self).__init__(self.output_path)
+    @pytest.fixture(autouse=True)
+    def init_output_path(self, tmpdir):
+        """Setup temporary output directory."""
+        self.output_path = str(tmpdir)
 
     def test_filename(self):
         """Tests retrieving the output file name."""
         transcode = Transcode()
         out_filename = transcode.get_out_filename(self.in_filename_flac)
-        eq_(self.out_filename, out_filename)
+        assert self.out_filename == out_filename
 
-    def execute_transcode(self, transcode,
-                          in_filename=in_filename_flac,
+    def execute_transcode(self, transcode, in_filename=in_filename_flac,
                           out_filename=out_filename):
         """Helper method to run transcoding tests."""
         transcode.execute(
@@ -140,14 +138,13 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         self.execute_transcode(Transcode(tracknumber_hack=True),
                                in_filename='brokentag_tracknumber.mp3')
 
-    @raises(IOError)
     def test_transcodeerror_transcode(self):
         """Tests transcoding failure."""
         # IOError is raised on audiotools.EncodingError. The easiest way that
         # leads into this exception is writing to a non writable path.
-        self.execute_transcode(Transcode(), out_filename='/')
+        with pytest.raises(IOError):
+            self.execute_transcode(Transcode(), out_filename='/')
 
-    @raises(IOError)
     def test_transcodeerror_copytags(self):
         """Tests copying tag failure."""
         # Copy tags expects the output file to be an MP3 file.
@@ -155,10 +152,11 @@ class TestTranscode(util.TemporaryOutputPathFixture):
         shutil.copy(
             os.path.join(self.input_path, self.img_filename),
             os.path.join(self.output_path, self.out_filename))
-        self.execute_transcode(Transcode(mode='copy'))
+        with pytest.raises(IOError):
+            self.execute_transcode(Transcode(mode='copy'))
 
-    @raises(IOError)
     def test_transcodingerror_format(self):
         """Tests transcoding a non supported format."""
-        self.execute_transcode(Transcode(),
-                               in_filename=self.in_filename_aiff)
+        with pytest.raises(IOError):
+            self.execute_transcode(Transcode(),
+                                   in_filename=self.in_filename_aiff)

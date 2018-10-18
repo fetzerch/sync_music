@@ -1,24 +1,21 @@
-image: python:3.5
-
 cache:
   paths:
     - .pip
     - .tox
 
 before_script:
+  - apt-get update &&
+    apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
   - pip --cache-dir=.pip install tox
 
-flake8:
-  script:
-    - tox -e flake8
-
-pylint:
-  script:
-    - tox -e pylint
-
 py35:
+  image: python:3.5
   script:
-    - apt-get update &&
-      apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
-    - tox -e py35-cover
-  coverage: '/TOTAL\s+(?:\d+\s+){4}(\d+\%)/'
+    - tox -e py35
+  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+
+py36:
+  image: python:3.6
+  script:
+    - tox -e py36
+  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
