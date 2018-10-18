@@ -6,6 +6,10 @@
     :target: https://coveralls.io/github/fetzerch/sync_music?branch=master
     :alt: Coveralls Status
 
+.. image:: https://img.shields.io/pypi/v/sync_music.svg
+    :target: https://pypi.org/project/sync_music
+    :alt: PyPI Version
+
 sync_music - Sync music library to external devices
 ===================================================
 
