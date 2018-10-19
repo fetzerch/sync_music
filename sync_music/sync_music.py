@@ -26,13 +26,15 @@ import sys
 
 from multiprocessing import Pool
 
+import pbr.version
+
 from . import util
 from .hashdb import HashDb
 from .actions import Copy
 from .actions import Skip
 from .transcode import Transcode
 
-__version__ = '0.4.0'
+__version__ = pbr.version.VersionInfo('kasserver').release_string()
 
 logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
     logging.getLogger(__name__))
