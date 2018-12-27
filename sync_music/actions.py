@@ -50,4 +50,3 @@ class Skip:
     @classmethod
     def execute(cls, in_filepath, out_filepath):  # pragma: no cover
         """Executes action."""
-        pass
