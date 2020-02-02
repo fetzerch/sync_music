@@ -375,13 +375,13 @@ def main():  # pragma: no cover
     sync_music = SyncMusic(args)
 
     if not args.batch and not util.query_yes_no("Do you want to continue?"):
-        exit(1)
+        sys.exit(1)
 
     try:
         sync_music.sync_audio()
     except FileNotFoundError as err:
         logger.critical("Failed to sync music {}", err)
-        exit(1)
+        sys.exit(1)
 
     if args.playlist_src:
         sync_music.sync_playlists()
