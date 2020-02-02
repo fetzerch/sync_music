@@ -221,8 +221,7 @@ class SyncMusic():
                             line = self._hashdb.database[in_filename][0]
                             line = line.replace('/', '\\')
                             break
-                        else:
-                            in_filename = in_filename.split('/', 1)[1]
+                        in_filename = in_filename.split('/', 1)[1]
                 except IndexError:
                     logger.warning("File does not exist: {}", line)
                     continue
