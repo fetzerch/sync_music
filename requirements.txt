@@ -15,6 +15,5 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-https://github.com/tuffy/python-audio-tools/tarball/v3.0#egg=audiotools-3.0
 mutagen>=1.29
 pbr
