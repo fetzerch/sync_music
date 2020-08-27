@@ -150,7 +150,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                         compression=self._compression)
         except (audiotools.EncodingError, audiotools.UnsupportedFile) as err:
             raise IOError("Failed to transcode file {}: {}"
-                          .format(in_filepath, err))
+                          .format(in_filepath, err)) from err
 
     def copy_tags(self, in_filepath, out_filepath):
         """Copy tags."""
@@ -160,8 +160,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         # in the functions above, this function has to be adapted too.
         try:
             mp3_file = mutagen.mp3.MP3(out_filepath)
-        except mutagen.mp3.HeaderNotFoundError:
-            raise IOError("Output file is not in MP3 format")
+        except mutagen.mp3.HeaderNotFoundError as err:
+            raise IOError("Output file is not in MP3 format") from err
 
         if not mp3_file.tags:
             mp3_file.tags = mutagen.id3.ID3()

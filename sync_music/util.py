@@ -40,7 +40,7 @@ class LogBraceString:  # pylint: disable=too-few-public-methods
 class LogStyleAdapter(logging.LoggerAdapter):
     """Logging StyleAdapter that supports string.format()."""
     def __init__(self, logger_instance, extra=None):
-        super(LogStyleAdapter, self).__init__(logger_instance, extra or {})
+        super().__init__(logger_instance, extra or {})
 
     def log(self, level, msg, *args, **kwargs):
         if self.isEnabledFor(level):  # pragma: no cover
