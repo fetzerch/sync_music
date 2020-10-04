@@ -8,14 +8,20 @@ before_script:
     apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
   - pip --cache-dir=.pip install tox
 
-py35:
-  image: python:3.5
-  script:
-    - tox -e py35
-  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
-
 py36:
   image: python:3.6
   script:
     - tox -e py36
+  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+
+py37:
+  image: python:3.7
+  script:
+    - tox -e py37
+  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+
+py38:
+  image: python:3.8
+  script:
+    - tox -e py38
   coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
