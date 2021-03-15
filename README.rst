@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/fetzerch/sync_music.svg?branch=master
-    :target: https://travis-ci.org/fetzerch/sync_music
+.. image:: https://travis-ci.com/fetzerch/sync_music.svg?branch=master
+    :target: https://travis-ci.com/fetzerch/sync_music
     :alt: Travis CI Status
 
 .. image:: https://coveralls.io/repos/github/fetzerch/sync_music/badge.svg?branch=master
