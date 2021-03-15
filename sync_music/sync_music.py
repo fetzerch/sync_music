@@ -34,7 +34,7 @@ from .actions import Copy
 from .actions import Skip
 from .transcode import Transcode
 
-__version__ = pbr.version.VersionInfo('kasserver').release_string()
+__version__ = pbr.version.VersionInfo('sync_music').release_string()
 
 logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
     logging.getLogger(__name__))
