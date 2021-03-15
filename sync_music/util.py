@@ -85,8 +85,8 @@ def delete_empty_directories(path):
     """Recursively remove empty directories."""
     if not os.path.isdir(path):
         return False
-    if all([delete_empty_directories(os.path.join(path, filename))
-            for filename in os.listdir(path)]):
+    if all(delete_empty_directories(os.path.join(path, filename))
+           for filename in os.listdir(path)):
         logger.info("Removing {}".format(path))
         os.rmdir(path)
         return True
