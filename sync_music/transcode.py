@@ -41,7 +41,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                  transcode=True, copy_tags=True,
                  albumartist_artist_hack=False,
                  albumartist_composer_hack=False,
-                 discnumber_hack=False, tracknumber_hack=False):
+                 discnumber_hack=False,
+                 tracknumber_hack=False,
+                 artist_albumartist_hack=True):
         self.name = "Processing"
         self._format = audiotools.MP3Audio
         self._compression = 'standard'
@@ -80,6 +82,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         self._tracknumber_hack = tracknumber_hack
         if tracknumber_hack:
             logger.info(" - Remove track total from track number")
+        self._artist_albumartist_hack = artist_albumartist_hack
+        if artist_albumartist_hack:
+            logger.info(" - Writing artist into albumartist field")
         logger.info("")
 
     def get_out_filename(self, path):
@@ -188,6 +193,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
             self.apply_disknumber_hack(mp3_file.tags)
         if self._tracknumber_hack:
             self.apply_tracknumber_hack(mp3_file.tags)
+        if self._artist_albumartist_hack:
+            self.apply_artist_albumartist_hack(mp3_file.tags)
 
         # Remove ReplayGain tags if the volume has already been changed
         if self._mode.startswith('replaygain'):
@@ -337,3 +344,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
             except ValueError:
                 pass
             tags.add(mutagen.id3.TRCK(encoding=0, text=track_string))
+
+    @classmethod
+    def apply_artist_albumartist_hack(cls, tags):
+        """Copy the artist (TPE1) into the albumartist field (TPE2)."""
+        albumartist = tags['TPE1'].text if 'TPE1' in tags else 'Various Artists'
+        tags.add(mutagen.id3.TPE2(encoding=3, text=albumartist))

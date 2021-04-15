@@ -66,7 +66,8 @@ class SyncMusic():
             albumartist_artist_hack=self._args.albumartist_artist_hack,
             albumartist_composer_hack=self._args.albumartist_composer_hack,
             discnumber_hack=self._args.discnumber_hack,
-            tracknumber_hack=self._args.tracknumber_hack)
+            tracknumber_hack=self._args.tracknumber_hack,
+            artist_albumartist_hack=self._args.artist_albumartist_hack)
 
     def _process_file(self, current_file):
         """Process single file.
@@ -325,6 +326,9 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
     parser_hacks.add_argument(
         '--tracknumber-hack', action='store_true',
         help="remove track total from track number")
+    parser_hacks.add_argument(
+        '--artist-albumartist-hack', action='store_true',
+        help="write artist into album artist field")
 
     # Parse
     settings = parser.parse_args(remaining_argv)
@@ -334,7 +338,8 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
         if settings.mode == 'copy' and (settings.albumartist_artist_hack or
                                         settings.albumartist_composer_hack or
                                         settings.discnumber_hack or
-                                        settings.tracknumber_hack):
+                                        settings.tracknumber_hack or
+                                        settings.artist_albumartist_hack):
             parser.error("hacks cannot be used in copy mode")
         paths = ['audio_src', 'audio_dest']
         if settings.playlist_src is not None:
