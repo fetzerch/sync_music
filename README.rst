@@ -116,6 +116,10 @@ Some media players don't properly support album artist tags. This restriction
 can be bypassed by writing the album artist information into the artist field.
 This can be enabled by adding the `--albumartist-artist-hack` parameter.
 
+Some media players don't properly support artist tags. This restriction
+can be bypassed by writing the artist information into the album artist field.
+This can be enabled by adding the `--artist-albumartist-hack` parameter.
+
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
