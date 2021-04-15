@@ -41,7 +41,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                  transcode=True, copy_tags=True,
                  albumartist_artist_hack=False,
                  albumartist_composer_hack=False,
-                 discnumber_hack=False, tracknumber_hack=False):
+                 artist_albumartist_hack=False,
+                 discnumber_hack=False,
+                 tracknumber_hack=False):
         self.name = "Processing"
         self._format = audiotools.MP3Audio
         self._compression = 'standard'
@@ -74,6 +76,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         self._albumartist_composer_hack = albumartist_composer_hack
         if albumartist_composer_hack:
             logger.info(" - Writing albumartist into composer field")
+        self._artist_albumartist_hack = artist_albumartist_hack
+        if artist_albumartist_hack:
+            logger.info(" - Writing artist into albumartist field")
         self._discnumber_hack = discnumber_hack
         if discnumber_hack:
             logger.info(" - Extending album field by disc number")
@@ -184,6 +189,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
             self.apply_albumartist_artist_hack(mp3_file.tags)
         if self._albumartist_composer_hack:
             self.apply_albumartist_composer_hack(mp3_file.tags)
+        if self._artist_albumartist_hack:
+            self.apply_artist_albumartist_hack(mp3_file.tags)
         if self._discnumber_hack:
             self.apply_disknumber_hack(mp3_file.tags)
         if self._tracknumber_hack:
@@ -318,6 +325,13 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         """Copy the albumartist (TPE2) into the composer field (TCOM)."""
         if 'TPE2' in tags:
             tags.add(mutagen.id3.TCOM(encoding=3, text=tags['TPE2'].text))
+
+    @classmethod
+    def apply_artist_albumartist_hack(cls, tags):
+        """Copy the artist (TPE1) into the albumartist field (TPE2)."""
+        albumartist = tags['TPE1'].text \
+            if 'TPE1' in tags else 'Various Artists'
+        tags.add(mutagen.id3.TPE2(encoding=3, text=albumartist))
 
     @classmethod
     def apply_disknumber_hack(cls, tags):

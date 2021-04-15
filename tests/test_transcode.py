@@ -124,6 +124,12 @@ class TestTranscode():
         self.execute_transcode(Transcode(albumartist_composer_hack=True),
                                in_filename=self.in_filename_mp3empty)
 
+    def test_transcode_artist_albumartist_hack(self):
+        """Tests transcoding with albumartist to artist hack enabled."""
+        self.execute_transcode(Transcode(artist_albumartist_hack=True))
+        self.execute_transcode(Transcode(artist_albumartist_hack=True),
+                               in_filename=self.in_filename_mp3empty)
+
     def test_transcode_discnumber_hack(self):
         """Tests transcoding with disc number hack enabled."""
         self.execute_transcode(Transcode(discnumber_hack=True))

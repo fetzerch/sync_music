@@ -188,7 +188,8 @@ class TestSyncMusicFiles():
         """Test reference folder with hacks."""
         self._execute_sync_music(arguments=[
             '--albumartist-artist-hack', '--albumartist-composer-hack',
-            '--discnumber-hack', '--tracknumber-hack'
+            '--artist-albumartist-hack', '--discnumber-hack',
+            '--tracknumber-hack'
         ])
 
     def test_reference_ioerror(self, mocker):

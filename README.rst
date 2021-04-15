@@ -121,6 +121,10 @@ support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
 enabled by adding the `--albumartist-composer-hack` parameter.
 
+Some media players don't properly support artist tags. This restriction
+can be bypassed by writing the artist information into the album artist field.
+This can be enabled by adding the `--artist-albumartist-hack` parameter.
+
 Some media players don't properly support disc number tags with tracks numbered
 starting with 1 for every disc. The user typically wants to group them by disc
 and not by track position. This can be solved by creating a different album for

@@ -65,6 +65,7 @@ class SyncMusic():
             copy_tags=not self._args.disable_tag_processing,
             albumartist_artist_hack=self._args.albumartist_artist_hack,
             albumartist_composer_hack=self._args.albumartist_composer_hack,
+            artist_albumartist_hack=self._args.artist_albumartist_hack,
             discnumber_hack=self._args.discnumber_hack,
             tracknumber_hack=self._args.tracknumber_hack)
 
@@ -320,6 +321,9 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
         '--albumartist-composer-hack', action='store_true',
         help="write album artist into composer field")
     parser_hacks.add_argument(
+        '--artist-albumartist-hack', action='store_true',
+        help="write artist into album artist field")
+    parser_hacks.add_argument(
         '--discnumber-hack', action='store_true',
         help="extend album field by disc number")
     parser_hacks.add_argument(
@@ -331,8 +335,10 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
 
     # Check required arguments and make absolute paths
     try:
+        # pylint: disable=too-many-boolean-expressions
         if settings.mode == 'copy' and (settings.albumartist_artist_hack or
                                         settings.albumartist_composer_hack or
+                                        settings.artist_albumartist_hack or
                                         settings.discnumber_hack or
                                         settings.tracknumber_hack):
             parser.error("hacks cannot be used in copy mode")
