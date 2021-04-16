@@ -138,6 +138,12 @@ class TestTranscode():
         self.execute_transcode(Transcode(tracknumber_hack=True),
                                in_filename='brokentag_tracknumber.mp3')
 
+    def test_transcode_artist_albumartist_hack(self):
+        """Tests transcoding with albumartist to artist hack enabled."""
+        self.execute_transcode(Transcode(artist_albumartist_hack=True))
+        self.execute_transcode(Transcode(artist_albumartist_hack=True),
+                               in_filename=self.in_filename_mp3empty)
+
     def test_transcodeerror_transcode(self):
         """Tests transcoding failure."""
         # IOError is raised on audiotools.EncodingError. The easiest way that
