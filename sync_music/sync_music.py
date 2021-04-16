@@ -335,6 +335,7 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
 
     # Check required arguments and make absolute paths
     try:
+        # pylint: disable=too-many-boolean-expressions
         if settings.mode == 'copy' and (settings.albumartist_artist_hack or
                                         settings.albumartist_composer_hack or
                                         settings.discnumber_hack or
