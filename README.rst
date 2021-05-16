@@ -87,7 +87,7 @@ the destination)::
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=transcode
 
 Transcoding MP3 files can lead to significantly smaller files if the source
-contains many 320kbps CBR MP3s as the target rate is 190kbps VBR. The drawback
+contains many 320kbps CBR MP3s as the target rate is 192kbps ABR. The drawback
 is that transcoding is slower and needs more CPU power.
 
 The *replaygain* and *replaygain-album* modes apply (track or album) based
@@ -95,8 +95,7 @@ volume normalization from ReplayGain_ tags when transcoding::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=replaygain
 
-Transcoding modes require that the MP3 files can be decoded by `Python
-Audio Tools`_ without issues. Problematic input files can be analyzed and fixed
+Transcoding modes require that the MP3 files can be decoded by FFmpeg_ without issues. Problematic input files can be analyzed and fixed
 for example with `MP3 Diags`_.
 
 Hacks
