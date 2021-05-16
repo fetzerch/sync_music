@@ -22,7 +22,6 @@ import collections
 import logging
 import os
 import shutil
-from warnings import showwarning
 import pkg_resources
 
 from pydub import AudioSegment, exceptions
@@ -51,9 +50,11 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
 
         logger.info("Transcoding settings:")
         logger.info(
-            " - Pydub {}".format(pkg_resources.require("PyDub")[0].version))
+            " - Pydub {}".format(
+                pkg_resources.require("PyDub")[0].version))
         logger.info(
-            " - Mutagen {}".format(pkg_resources.require("mutagen")[0].version))
+            " - Mutagen {}".format(
+                pkg_resources.require("mutagen")[0].version))
         self._mode = mode
         self._transcode = transcode
         if transcode and mode in ['auto', 'transcode', 'replaygain',
@@ -160,7 +161,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                     logger.warning("No ReplayGain info found {}", in_filepath)
                     in_file.export(
                         out_filepath, format=self._format, bitrate=self._bitrate)
-        except (exceptions.CouldntDecodeError, exceptions.CouldntEncodeError, PermissionError) as err:
+        except (exceptions.CouldntDecodeError,
+                exceptions.CouldntEncodeError,
+                PermissionError) as err:
             raise IOError("Failed to transcode file {}: {}"
                           .format(in_filepath, err)) from err
 
@@ -181,11 +184,11 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         # Tags are processed depending on their input format.
         if isinstance(in_file, mutagen.mp3.MP3):
             self.copy_id3_to_id3(in_file.tags, mp3_file.tags)
-        elif (isinstance(in_file, (mutagen.flac.FLAC,
-                                   mutagen.oggvorbis.OggVorbis))):
+        elif isinstance(in_file, (mutagen.flac.FLAC,
+                                  mutagen.oggvorbis.OggVorbis)):
             self.copy_vorbis_to_id3(in_file.tags, mp3_file.tags)
             self.copy_vorbis_picture_to_id3(in_file, mp3_file.tags)
-        elif(isinstance(in_file, mutagen.mp4.MP4)):
+        elif isinstance(in_file, mutagen.mp4.MP4):
             self.copy_mp4_to_id3(in_file.tags, mp3_file.tags)
             self.copy_mp4_picture_to_id3(in_file, mp3_file.tags)
         else:
@@ -303,7 +306,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                 id3tag = tagtable[tag]
                 if tag == 'trkn':
                     track = src_tags["trkn"][0][0]
-                    if src_tags["trkn"][0][1] != 0:
+                    if src_tags["trkn"][0][1] != 0:  # pylint: disable=too-many-nested-blocks
                         track = '{}/{}'.format(track,
                                                src_tags["trkn"][0][1])
                     else:
@@ -311,21 +314,19 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                     dest_tags.add(id3tag(encoding=3, text=track))
                 elif tag == 'disk':
                     disk = src_tags["disk"][0][0]
-                    if src_tags["disk"][0][1] != 0:
+                    if src_tags["disk"][0][1] != 0:  # pylint: disable=too-many-nested-blocks
                         disk = '{}/{}'.format(disk,
                                               src_tags["disk"][0][1])
                     else:
                         disk = str(disk)
                     dest_tags.add(id3tag(encoding=3, text=disk))
                 else:  # All other tags
-                    tagbuffer = ''
+                    tagbuffer = []
                     for element in src_tags[tag]:
-                        if(element != ''):
-                            if(tagbuffer != ''):
-                                tagbuffer += (', ' + element)
-                            else:
-                                tagbuffer = element
-                    dest_tags.add(id3tag(encoding=3, text=tagbuffer))
+                        if element != '':
+                            tagbuffer.append(element)
+                    dest_tags.add(
+                        id3tag(encoding=3, text=", ".join(tagbuffer)))
 
     @ classmethod
     def copy_mp4_picture_to_id3(cls, in_file, dest_tags):
@@ -379,9 +380,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         if 'APIC:' not in dest_tags:
             image = os.path.join(os.path.dirname(in_filename), 'folder.jpg')
             if os.path.exists(image):
-                image_file = open(image, 'rb')
-                img = image_file.read()
-                image_file.close()
+                with open(image, 'rb') as image_file:
+                    img = image_file.read()
                 dest_tags.add(mutagen.id3.APIC(3, 'image/jpg', 3, '', img))
 
     @ classmethod

@@ -34,6 +34,10 @@ class TestTranscode():
     in_filename_ogg = 'withtags.ogg'
     in_filename_oggall = 'withalltags.ogg'
     in_filename_oggempty = 'stripped.ogg'
+    in_filename_m4a = 'withtags.m4a'
+    in_filename_m4aallJPEG = 'withalltagsJPEG.m4a'
+    in_filename_m4aallPNG = 'withalltagsPNG.m4a'
+    in_filename_m4aempty = 'stripped.m4a'
     in_filename_mp3 = 'withtags.mp3'
     in_filename_mp3all = 'withalltags.mp3'
     in_filename_mp3empty = 'stripped.mp3'
@@ -75,6 +79,14 @@ class TestTranscode():
                                in_filename=self.in_filename_oggall)
         self.execute_transcode(Transcode(),
                                in_filename=self.in_filename_oggempty)
+        self.execute_transcode(Transcode(),
+                               in_filename=self.in_filename_m4a)
+        self.execute_transcode(Transcode(),
+                               in_filename=self.in_filename_m4aallJPEG)
+        self.execute_transcode(Transcode(),
+                               in_filename=self.in_filename_m4aallPNG)
+        self.execute_transcode(Transcode(),
+                               in_filename=self.in_filename_m4aempty)
 
     def test_transcode_copy(self):
         """Tests transcoding with copying instead of transcoding."""
@@ -149,7 +161,7 @@ class TestTranscode():
         # IOError is raised on audiotools.EncodingError. The easiest way that
         # leads into this exception is writing to a non writable path.
         with pytest.raises(IOError):
-            self.execute_transcode(Transcode(), out_filename='/')
+            self.execute_transcode(Transcode(), out_filename='/out.mp3')
 
     def test_transcodeerror_copytags(self):
         """Tests copying tag failure."""

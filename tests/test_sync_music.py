@@ -77,8 +77,10 @@ class TestSyncMusicFiles():
     output_path = None
 
     output_files = [
-        'stripped_flac.mp3', 'stripped_mp3.mp3', 'stripped_ogg.mp3', 'stripped_m4a.mp3',
-        'withtags_flac.mp3', 'withtags_mp3.mp3', 'withtags_ogg.mp3', 'withtags_m4a.mp3',
+        'stripped_flac.mp3', 'stripped_mp3.mp3',
+        'stripped_ogg.mp3', 'stripped_m4a.mp3',
+        'withtags_flac.mp3', 'withtags_mp3.mp3',
+        'withtags_ogg.mp3', 'withtags_m4a.mp3',
         'sync_music.db', 'folder.jpg', 'dir/folder.jpg'
     ]
 
@@ -168,8 +170,10 @@ class TestSyncMusicFiles():
     def test_reference_forcecopy(self):
         """Test reference folder with force copy."""
         output_files = [
-            'stripped_flac.flac', 'stripped_mp3.mp3', 'stripped_ogg.ogg', 'stripped_m4a.m4a',
-            'withtags_flac.flac', 'withtags_mp3.mp3', 'withtags_ogg.ogg', 'withtags_m4a.m4a',
+            'stripped_flac.flac', 'stripped_mp3.mp3',
+            'stripped_ogg.ogg', 'stripped_m4a.m4a',
+            'withtags_flac.flac', 'withtags_mp3.mp3',
+            'withtags_ogg.ogg', 'withtags_m4a.m4a',
             'sync_music.db', 'folder.jpg', 'dir/folder.jpg'
         ]
         self._execute_sync_music(output_files=output_files,
