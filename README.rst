@@ -38,24 +38,14 @@ paths in addition to the FAT32 filename adaptations.
 Dependencies
 ------------
 
-- Python 3.5
-- `Python Audio Tools`_ >= 3.0 (for transcoding to MP3)
+- Python >=3.5
+- Pydub_ >= 0.25.1 (for transcoding to MP3)
 - Mutagen_ >= 1.29 (for tag manipulation)
 
 Installation
 ------------
 
-The first step is to install `Python Audio Tools`_ which depends on a couple of
-native libraries and doesn't offer a PyPI package. On Ubuntu 16.04 or later
-there's an official package that can simply be installed using::
-
-    # apt install audiotools
-
-As an alternative `Python Audio Tools`_ can be installed from source after the
-necessary native libraries are installed::
-
-    # apt install python3-dev lame libmp3lame-dev libmpg123-dev libvorbis-dev
-    # pip3 install https://github.com/tuffy/python-audio-tools/archive/master.zip
+The first step is to install FFmpeg_ and libavcodec-extra.
 
 Then *sync_music* can be installed from PyPI with::
 
@@ -149,7 +139,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 `GNU General Public License <http://www.gnu.org/licenses/gpl-2.0.html>`_
 for more details.
 
-.. _`Python Audio Tools`: http://audiotools.sourceforge.net
+.. _Pydub: https://github.com/jiaaro/pydub/
 .. _`MP3 Diags`: http://mp3diags.sourceforge.net
 .. _Mutagen: https://mutagen.readthedocs.io
 .. _ReplayGain: https://en.wikipedia.org/wiki/ReplayGain
+.. _FFmpeg: https://ffmpeg.org/

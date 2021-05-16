@@ -112,7 +112,7 @@ class SyncMusic():
     def _get_file_action(self, in_filename):
         """Determine the action for the given file."""
         extension = os.path.splitext(in_filename)[1]
-        if extension in ['.flac', '.ogg', '.mp3']:
+        if extension in ['.flac', '.ogg', '.mp3', '.m4a']:
             if self._args.mode == 'copy':
                 return self._action_copy
             return self._action_transcode
