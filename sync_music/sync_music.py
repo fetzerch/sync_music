@@ -190,8 +190,8 @@ class SyncMusic:
                 for current_file in files:
                     file_hashes.append(self._process_file(current_file))
             else:
-                pool = Pool(processes=self._args.jobs)
-                file_hashes = pool.map(self._process_file, files)
+                with Pool(processes=self._args.jobs) as pool:
+                    file_hashes = pool.map(self._process_file, files)
         except:  # noqa, pylint: disable=bare-except
             logger.error(">>> traceback <<<")
             logger.exception("Exception")
@@ -226,25 +226,23 @@ class SyncMusic:
             os.remove(destpath)
 
         # Copy file
-        in_file = codecs.open(srcpath, "r", encoding="windows-1252")
-        out_file = codecs.open(destpath, "w", encoding="windows-1252")
-        for line in in_file.read().splitlines():
-            if not line.startswith("#EXT"):
-                in_filename = line
-                try:
-                    while True:
-                        if in_filename in self._hashdb.database:
-                            line = self._hashdb.database[in_filename][0]
-                            line = line.replace("/", "\\")
-                            break
-                        in_filename = in_filename.split("/", 1)[1]
-                except IndexError:
-                    logger.warning("File does not exist: {}", line)
-                    continue
-            line = line + "\r\n"
-            out_file.write(line)
-        in_file.close()
-        out_file.close()
+        with codecs.open(srcpath, "r", encoding="windows-1252") as in_file:
+            with codecs.open(destpath, "w", encoding="windows-1252") as out_file:
+                for line in in_file.read().splitlines():
+                    if not line.startswith("#EXT"):
+                        in_filename = line
+                        try:
+                            while True:
+                                if in_filename in self._hashdb.database:
+                                    line = self._hashdb.database[in_filename][0]
+                                    line = line.replace("/", "\\")
+                                    break
+                                in_filename = in_filename.split("/", 1)[1]
+                        except IndexError:
+                            logger.warning("File does not exist: {}", line)
+                            continue
+                    line = line + "\r\n"
+                    out_file.write(line)
 
 
 def load_settings(arguments=None):  # pylint: disable=too-many-locals

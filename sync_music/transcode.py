@@ -251,9 +251,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
             "replaygain_track_gain": "replaygain_track_gain",
             "replaygain_track_peak": "replaygain_track_peak",
         }
-        for tag in tagtable:
+        for tag, id3tag in tagtable.items():
             if tag in src_tags:
-                id3tag = tagtable[tag]
                 if tag == "tracknumber":
                     track = src_tags["tracknumber"][0]
                     if "tracktotal" in src_tags:
@@ -333,9 +332,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         if "APIC:" not in dest_tags:
             image = os.path.join(os.path.dirname(in_filename), "folder.jpg")
             if os.path.exists(image):
-                image_file = open(image, "rb")
-                img = image_file.read()
-                image_file.close()
+                with open(image, "rb") as image_file:
+                    img = image_file.read()
                 dest_tags.add(mutagen.id3.APIC(3, "image/jpg", 3, "", img))
 
     @classmethod
