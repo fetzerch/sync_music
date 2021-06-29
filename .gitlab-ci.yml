@@ -25,3 +25,9 @@ py38:
   script:
     - tox -e py38
   coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+
+py39:
+  image: python:3.9
+  script:
+    - tox -e py39
+  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
