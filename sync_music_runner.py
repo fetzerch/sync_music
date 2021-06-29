@@ -21,5 +21,5 @@
 
 from sync_music.sync_music import main
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -27,8 +27,10 @@ import re
 # the newer string.format style instead of the '%' style.
 # From: https://docs.python.org/3/howto/logging-cookbook.html
 
+
 class LogBraceString:  # pylint: disable=too-few-public-methods
     """Log message that supports string.format()."""
+
     def __init__(self, fmt, args):
         self.fmt = fmt
         self.args = args
@@ -39,6 +41,7 @@ class LogBraceString:  # pylint: disable=too-few-public-methods
 
 class LogStyleAdapter(logging.LoggerAdapter):
     """Logging StyleAdapter that supports string.format()."""
+
     def __init__(self, logger_instance, extra=None):
         super().__init__(logger_instance, extra or {})
 
@@ -46,11 +49,11 @@ class LogStyleAdapter(logging.LoggerAdapter):
         if self.isEnabledFor(level):  # pragma: no cover
             msg, kwargs = self.process(msg, kwargs)
             self.logger._log(  # pylint: disable=protected-access
-                level, LogBraceString(msg, args), (), **kwargs)
+                level, LogBraceString(msg, args), (), **kwargs
+            )
 
 
-logger = LogStyleAdapter(  # pylint: disable=invalid-name
-    logging.getLogger(__name__))
+logger = LogStyleAdapter(logging.getLogger(__name__))  # pylint: disable=invalid-name
 
 
 def makepath(path):
@@ -63,8 +66,8 @@ def list_all_files(path):
     all_files = []
     for dirpath, dirs, filenames in os.walk(path):
         # Don't process hidden files
-        dirs[:] = [d for d in dirs if not d[0] == '.']
-        filenames = [f for f in filenames if not f[0] == '.']
+        dirs[:] = [d for d in dirs if not d[0] == "."]
+        filenames = [f for f in filenames if not f[0] == "."]
 
         relpath = os.path.relpath(dirpath, path)
         for filename in filenames:
@@ -85,8 +88,10 @@ def delete_empty_directories(path):
     """Recursively remove empty directories."""
     if not os.path.isdir(path):
         return False
-    if all(delete_empty_directories(os.path.join(path, filename))
-           for filename in os.listdir(path)):
+    if all(
+        delete_empty_directories(os.path.join(path, filename))
+        for filename in os.listdir(path)
+    ):
         logger.info("Removing {}".format(path))
         os.rmdir(path)
         return True
@@ -95,17 +100,17 @@ def delete_empty_directories(path):
 
 def correct_path_fat32(filename):
     """Replace illegal characters in FAT32 filenames with '_'."""
-    return re.sub(r'[\\|:|*|?|"|<|>|\|]', '_', filename)
+    return re.sub(r'[\\|:|*|?|"|<|>|\|]', "_", filename)
 
 
 def query_yes_no(question):  # pragma: no cover
     """Ask a yes/no question, yes being the default."""
     while 1:
-        sys.stdout.write(question + ' [Y/n]: ')
+        sys.stdout.write(question + " [Y/n]: ")
         choice = input().lower()
-        if choice == '':
+        if choice == "":
             return True
         try:
-            return choice.lower() in ['true', '1', 't', 'y', 'yes']
+            return choice.lower() in ["true", "1", "t", "y", "yes"]
         except ValueError:
             sys.stdout.write("Valid answers: 'yes' or 'no'\n")

@@ -18,4 +18,5 @@
 """sync_music - Sync music library to external device."""  # pragma: no cover
 
 from .sync_music import main  # pragma: no cover
+
 main()  # pragma: no cover
