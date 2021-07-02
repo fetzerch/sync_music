@@ -38,7 +38,7 @@ paths in addition to the FAT32 filename adaptations.
 Dependencies
 ------------
 
-- Python 3.5
+- Python >= 3.5
 - `Python Audio Tools`_ >= 3.0 (for transcoding to MP3)
 - Mutagen_ >= 1.29 (for tag manipulation)
 
@@ -89,10 +89,10 @@ supported options is available in the built in help message::
 Transcoding
 ^^^^^^^^^^^
 
-The operation mode can be changed with the `--mode` parameter.
+The operation mode can be changed with the ``--mode`` parameter.
 
-In *transcode* mode MP3 files are transcoded as well (instead of just copied to
-the destination)::
+In ``transcode`` mode MP3 files are transcoded as well (instead of just copied
+to the destination)::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=transcode
 
@@ -100,7 +100,7 @@ Transcoding MP3 files can lead to significantly smaller files if the source
 contains many 320kbps CBR MP3s as the target rate is 190kbps VBR. The drawback
 is that transcoding is slower and needs more CPU power.
 
-The *replaygain* and *replaygain-album* modes apply (track or album) based
+The ``replaygain`` and ``replaygain-album`` modes apply (track or album) based
 volume normalization from ReplayGain_ tags when transcoding::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=replaygain
@@ -114,25 +114,25 @@ Hacks
 
 Some media players don't properly support album artist tags. This restriction
 can be bypassed by writing the album artist information into the artist field.
-This can be enabled by adding the `--albumartist-artist-hack` parameter.
+This can be enabled by adding the ``--albumartist-artist-hack`` parameter.
 
 Some media players don't properly support album artist tags, but they do
 support the composer field. This restriction can be bypassed by writing
 the album artist information into the composer field. This can be
-enabled by adding the `--albumartist-composer-hack` parameter.
+enabled by adding the ``--albumartist-composer-hack`` parameter.
 
 Some media players don't properly support artist tags. This restriction
 can be bypassed by writing the artist information into the album artist field.
-This can be enabled by adding the `--artist-albumartist-hack` parameter.
+This can be enabled by adding the ``--artist-albumartist-hack`` parameter.
 
 Some media players don't properly support disc number tags with tracks numbered
 starting with 1 for every disc. The user typically wants to group them by disc
 and not by track position. This can be solved by creating a different album for
-each disc. With the `--discnumber-hack` option, the disc number is appended
+each disc. With the ``--discnumber-hack`` option, the disc number is appended
 to the album field.
 
 Some media players don't properly support track number tags containing the
-total number of tracks on the disk. With the `--tracknumber-hack` option, the
+total number of tracks on the disk. With the ``--tracknumber-hack`` option, the
 track total is removed from the track number field.
 
 License
