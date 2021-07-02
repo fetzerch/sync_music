@@ -3,31 +3,39 @@ cache:
     - .pip
     - .tox
 
-before_script:
-  - apt-get update &&
-    apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
-  - pip --cache-dir=.pip install tox
+.tox:
+  before_script:
+    - apt-get update &&
+      apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
+    - pip --cache-dir=.pip install tox
+  script:
+    - tox -- --junitxml=junit.xml --cov-report=xml:coverage.xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      cobertura: coverage.xml
+      junit: junit.xml
 
 py36:
+  extends: .tox
   image: python:3.6
-  script:
-    - tox -e py36
-  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+  variables:
+    TOXENV: py36
 
 py37:
+  extends: .tox
   image: python:3.7
-  script:
-    - tox -e py37
-  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+  variables:
+    TOXENV: py37
 
 py38:
+  extends: .tox
   image: python:3.8
-  script:
-    - tox -e py38
-  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+  variables:
+    TOXENV: py38
 
 py39:
+  extends: .tox
   image: python:3.9
-  script:
-    - tox -e py39
-  coverage: '/\S+\.py\s+(?:\d+\s+){4}(\d+\%)/'
+  variables:
+    TOXENV: py39
