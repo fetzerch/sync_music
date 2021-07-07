@@ -25,7 +25,7 @@ from pkg_resources import parse_version
 
 def verify_interpreter_version():
     """Verify the Pyhton interpreter version."""
-    minversion = "3.5"
+    minversion = "3.6"
     version = python_version()
     if parse_version(version) < parse_version(minversion):  # pragma: no cover
         sys.stdout.write(

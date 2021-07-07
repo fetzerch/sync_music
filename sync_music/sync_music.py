@@ -142,9 +142,7 @@ class SyncMusic:
             if not in_filepath.exists():
                 if out_filepath.exists():
                     if self._args.batch or util.query_yes_no(
-                        "File {} does not exist, do you want to remove {}".format(
-                            in_filename, out_filename
-                        )
+                        f"File {in_filename} does not exist, do you want to remove {out_filename}"
                     ):
                         try:
                             out_filepath.unlink()
@@ -263,13 +261,13 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
         path = pathlib.Path(path)
         if path.is_dir():
             return path
-        raise argparse.ArgumentTypeError("{} is not a valid path".format(str(path)))
+        raise argparse.ArgumentTypeError(f"{path} is not a valid path")
 
     # ArgumentParser 2: Get rest of the arguments
     parser = argparse.ArgumentParser(parents=[config_parser])
     parser.set_defaults(**defaults)
     parser.add_argument(
-        "-v", "--version", action="version", version="%(prog)s {}".format(__version__)
+        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument(
         "-b", "--batch", action="store_true", help="batch mode, no user input"

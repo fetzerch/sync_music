@@ -127,7 +127,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         try:
 
             def _get_value(tag):
-                value = in_file.tags["{}{}".format(tag_prefix, tag)][0]
+                value = in_file.tags[f"{tag_prefix}{tag}"][0]
                 return float(value.replace("dB", ""))
 
             if self._mode == "replaygain-album":
@@ -168,9 +168,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                         str(out_filepath), self._format, compression=self._compression
                     )
         except (audiotools.EncodingError, audiotools.UnsupportedFile) as err:
-            raise IOError(
-                "Failed to transcode file {}: {}".format(in_filepath, err)
-            ) from err
+            raise IOError(f"Failed to transcode file {in_filepath}: {err}") from err
 
     def copy_tags(self, in_filepath, out_filepath):
         """Copy tags."""
@@ -249,12 +247,12 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                 if tag == "tracknumber":
                     track = src_tags["tracknumber"][0]
                     if "tracktotal" in src_tags:
-                        track = "{}/{}".format(track, src_tags["tracktotal"][0])
+                        track = f"{track}/{src_tags['tracktotal'][0]}"
                     dest_tags.add(id3tag(encoding=3, text=track))
                 elif tag == "discnumber":
                     disc = src_tags["discnumber"][0]
                     if "disctotal" in src_tags:
-                        disc = "{}/{}".format(disc, src_tags["disctotal"][0])
+                        disc = f"{disc}/{src_tags['disctotal'][0]}"
                     dest_tags.add(id3tag(encoding=3, text=disc))
                 elif tag == "MUSICBRAINZ_TRACKID":
                     dest_tags.add(
