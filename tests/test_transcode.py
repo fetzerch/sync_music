@@ -17,7 +17,7 @@
 
 """Tests the transcoding implementation."""
 
-import os
+import pathlib
 import shutil
 
 import pytest
@@ -40,27 +40,27 @@ class TestTranscode:
     in_filename_aiff = "withtags.aiff"
     out_filename = "withtags.mp3"
     img_filename = "folder.jpg"
-    input_path = "tests/reference_data/audiofiles"
+    input_path = pathlib.Path("tests/reference_data/audiofiles")
     output_path = None
 
     @pytest.fixture(autouse=True)
-    def init_output_path(self, tmpdir):
+    def init_output_path(self, tmp_path):
         """Setup temporary output directory."""
-        self.output_path = str(tmpdir)
+        self.output_path = tmp_path
 
     def test_filename(self):
         """Tests retrieving the output file name."""
         transcode = Transcode()
-        out_filename = transcode.get_out_filename(self.in_filename_flac)
-        assert self.out_filename == out_filename
+        out_filename = transcode.get_out_filename(pathlib.Path(self.in_filename_flac))
+        assert pathlib.Path(self.out_filename) == out_filename
 
     def execute_transcode(
         self, transcode, in_filename=in_filename_flac, out_filename=out_filename
     ):
         """Helper method to run transcoding tests."""
         transcode.execute(
-            os.path.join(self.input_path, in_filename),
-            os.path.join(self.output_path, out_filename),
+            self.input_path / in_filename,
+            self.output_path / out_filename,
         )
 
     def test_transcode_default(self):
@@ -103,8 +103,8 @@ class TestTranscode:
     def test_transcode_folderimage(self):
         """Tests transcoding without folder image."""
         # Copy input file to a folder without folder.jpg (output folder)
-        in_filename = os.path.join(self.output_path, self.in_filename_flac)
-        shutil.copy(os.path.join(self.input_path, self.in_filename_flac), in_filename)
+        in_filename = self.output_path / self.in_filename_flac
+        shutil.copy(self.input_path / self.in_filename_flac, in_filename)
         self.execute_transcode(Transcode(), in_filename=in_filename)
 
     def test_transcode_artist_hack(self):
@@ -160,8 +160,8 @@ class TestTranscode:
         # Copy tags expects the output file to be an MP3 file.
         # Don't transcode as this would rewrite the output file.
         shutil.copy(
-            os.path.join(self.input_path, self.img_filename),
-            os.path.join(self.output_path, self.out_filename),
+            self.input_path / self.img_filename,
+            self.output_path / self.out_filename,
         )
         with pytest.raises(IOError):
             self.execute_transcode(Transcode(mode="copy"))
