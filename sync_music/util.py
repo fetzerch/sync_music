@@ -18,7 +18,7 @@
 """Utilities."""
 
 import logging
-import os
+import pathlib
 import sys
 import re
 
@@ -56,51 +56,33 @@ class LogStyleAdapter(logging.LoggerAdapter):
 logger = LogStyleAdapter(logging.getLogger(__name__))  # pylint: disable=invalid-name
 
 
-def makepath(path):
-    """Convert relative path into absolute path."""
-    return os.path.abspath(os.path.expanduser(path))
+def list_all_files(dirpath):
+    """Get a list with relative paths for all files in the given directory."""
 
+    def _recursively_list_all_files(root, dirpath):
+        for path in dirpath.iterdir():
+            if path.name.startswith("."):
+                continue
+            if path.is_dir():
+                yield from _recursively_list_all_files(root, path)
+                continue
+            yield path.relative_to(root)
 
-def list_all_files(path):
-    """Get a list with relative paths for all files in the given path."""
-    all_files = []
-    for dirpath, dirs, filenames in os.walk(path):
-        # Don't process hidden files
-        dirs[:] = [d for d in dirs if not d[0] == "."]
-        filenames = [f for f in filenames if not f[0] == "."]
-
-        relpath = os.path.relpath(dirpath, path)
-        for filename in filenames:
-            all_files.append(os.path.normpath(os.path.join(relpath, filename)))
-    return all_files
-
-
-def ensure_directory_exists(path):
-    """Ensure that the given path exists."""
-    try:
-        if not os.path.exists(path):
-            os.makedirs(path)
-    except OSError:
-        pass
+    return _recursively_list_all_files(dirpath, dirpath)
 
 
 def delete_empty_directories(path):
     """Recursively remove empty directories."""
-    if not os.path.isdir(path):
-        return False
-    if all(
-        delete_empty_directories(os.path.join(path, filename))
-        for filename in os.listdir(path)
-    ):
-        logger.info("Removing {}".format(path))
-        os.rmdir(path)
-        return True
-    return False
+    for directory in sorted(path.glob("**"), key=lambda p: len(str(p)), reverse=True):
+        try:
+            directory.rmdir()
+        except OSError:
+            continue
 
 
 def correct_path_fat32(filename):
     """Replace illegal characters in FAT32 filenames with '_'."""
-    return re.sub(r'[\\|:|*|?|"|<|>|\|]', "_", filename)
+    return pathlib.Path(re.sub(r'[\\|:|*|?|"|<|>|\|]', "_", str(filename)))
 
 
 def query_yes_no(question):  # pragma: no cover

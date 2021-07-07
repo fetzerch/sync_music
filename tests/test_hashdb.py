@@ -17,7 +17,7 @@
 
 """Tests the HashDb implementation."""
 
-import os
+import pathlib
 
 import pytest
 
@@ -32,20 +32,20 @@ class TestHashDb:
 
     @staticmethod
     @pytest.fixture()
-    def testfile(tmpdir):
+    def testfile(tmp_path):
         """Setup test file in temporary directory."""
-        return os.path.join(str(tmpdir), "test_hashdb.db")
+        return tmp_path / "test_hashdb.db"
 
     @staticmethod
     def test_nonexistent():
         """Test non existent file."""
-        hashdb = HashDb("/proc/nonexistent")
+        hashdb = HashDb(pathlib.Path("/proc/nonexistent"))
         hashdb.load()
         assert hashdb.database == {}
 
     def test_writeerror(self):
         """Test write error."""
-        hashdb = HashDb("/proc/nonexistent")
+        hashdb = HashDb(pathlib.Path("/proc/nonexistent"))
         hashdb.database = self.data
         hashdb.store()
         hashdb.database = {}
@@ -63,6 +63,6 @@ class TestHashDb:
     @staticmethod
     def test_hash(testfile):
         """Test file hashing."""
-        with open(testfile, "wb") as out_file:
+        with testfile.open("wb") as out_file:
             out_file.write(b"TEST")
         assert HashDb.get_hash(testfile) == "033bd94b1168d7e4f0d644c3c95e35bf"

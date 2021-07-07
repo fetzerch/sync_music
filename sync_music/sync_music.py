@@ -17,11 +17,11 @@
 
 """sync_music - Sync music library to external device."""
 
-import os
 import codecs
 import logging
 import argparse
 import configparser
+import pathlib
 import sys
 
 from multiprocessing import Pool
@@ -49,7 +49,7 @@ class SyncMusic:
         logger.info(__doc__)
         logger.info("")
         self._args = args
-        self._hashdb = HashDb(os.path.join(args.audio_dest, "sync_music.db"))
+        self._hashdb = HashDb(args.audio_dest / "sync_music.db")
         logger.info("Settings:")
         logger.info(" - audio-src:  {}".format(args.audio_src))
         logger.info(" - audio-dest: {}".format(args.audio_dest))
@@ -95,22 +95,23 @@ class SyncMusic:
             )
             return None
 
-        in_filepath = os.path.join(self._args.audio_src, in_filename)
-        out_filepath = os.path.join(self._args.audio_dest, out_filename)
+        in_filepath = self._args.audio_src / in_filename
+        out_filepath = self._args.audio_dest / out_filename
 
         # Calculate hash to see if the input file has changed
         hash_current = self._hashdb.get_hash(in_filepath)
         hash_database = None
-        if in_filename in self._hashdb.database:
-            hash_database = self._hashdb.database[in_filename][1]
+        if str(in_filename) in self._hashdb.database:
+            hash_database = self._hashdb.database[str(in_filename)][1]
 
         if (
             self._args.force
             or hash_database is None
             or hash_database != hash_current
-            or not os.path.exists(out_filepath)
+            or not out_filepath.exists()
         ):
-            util.ensure_directory_exists(os.path.dirname(out_filepath))
+            out_filepath.parent.mkdir(parents=True, exist_ok=True)
+
             try:
                 action.execute(in_filepath, out_filepath)
             except IOError as err:
@@ -122,41 +123,38 @@ class SyncMusic:
 
     def _get_file_action(self, in_filename):
         """Determine the action for the given file."""
-        extension = os.path.splitext(in_filename)[1]
-        if extension in [".flac", ".ogg", ".mp3"]:
+        if in_filename.suffix in [".flac", ".ogg", ".mp3"]:
             if self._args.mode == "copy":
                 return self._action_copy
             return self._action_transcode
-        if in_filename.endswith("folder.jpg"):
+        if in_filename.name.endswith("folder.jpg"):
             return self._action_copy
         return self._action_skip
 
     def _clean_up_missing_files(self):
         """Remove files in the destination, where the source file doesn't
-        exist anymore.
+        exist anymore. This can lead to empty directories, remove them as well.
         """
         logger.info("Cleaning up missing files")
         files = [(k, v[0]) for k, v in self._hashdb.database.items()]
         for in_filename, out_filename in files:
-            in_filepath = os.path.join(self._args.audio_src, in_filename)
-            out_filepath = os.path.join(self._args.audio_dest, out_filename)
+            in_filepath = self._args.audio_src / in_filename
+            out_filepath = self._args.audio_dest / out_filename
 
-            if not os.path.exists(in_filepath):
-                if os.path.exists(out_filepath):
+            if not in_filepath.exists():
+                if out_filepath.exists():
                     if self._args.batch or util.query_yes_no(
                         "File {} does not exist, do you want to remove {}".format(
                             in_filename, out_filename
                         )
                     ):
                         try:
-                            os.remove(out_filepath)
+                            out_filepath.unlink()
                         except OSError as err:
                             logger.error("Error: Failed to remove file {}", err)
-                if not os.path.exists(out_filepath):
-                    del self._hashdb.database[in_filename]
+                if not out_filepath.exists():
+                    del self._hashdb.database[str(in_filename)]
 
-    def _clean_up_empty_directories(self):
-        """Remove empty directories in the destination."""
         logger.info("Cleaning up empty directories")
         util.delete_empty_directories(self._args.audio_dest)
 
@@ -164,12 +162,10 @@ class SyncMusic:
         """Sync audio."""
         self._hashdb.load()
 
-        # Create a list of all tracks ordered by their last modified time stamp
         files = [
             (
                 f,
                 self._get_file_action(f),
-                os.path.getmtime(os.path.join(self._args.audio_src, f)),
             )
             for f in util.list_all_files(self._args.audio_src)
         ]
@@ -177,9 +173,8 @@ class SyncMusic:
         if not files:
             raise FileNotFoundError("No input files")
 
-        # Cleanup files that does not exist any more
+        # Cleanup files that do not exist any more and empty directories
         self._clean_up_missing_files()
-        self._clean_up_empty_directories()
 
         # Do the work
         logger.info("Starting actions")
@@ -200,30 +195,28 @@ class SyncMusic:
         # Store new hashes in the database
         for file_hash in file_hashes:
             if file_hash is not None:
-                self._hashdb.database[file_hash[0]] = (file_hash[1], file_hash[2])
+                self._hashdb.database[str(file_hash[0])] = (
+                    str(file_hash[1]),
+                    file_hash[2],
+                )
         self._hashdb.store()
 
     def sync_playlists(self):
         """Sync m3u playlists."""
-        for dirpath, _, filenames in os.walk(self._args.playlist_src):
-            relpath = os.path.relpath(dirpath, self._args.playlist_src)
-            for filename in filenames:
-                if os.path.splitext(filename)[1] == ".m3u":
-                    try:
-                        self._sync_playlist(
-                            os.path.normpath(os.path.join(relpath, filename))
-                        )
-                    except IOError as err:
-                        logger.error("Error: {}", err)
+        for playlist_path in self._args.playlist_src.rglob("*.m3u"):
+            try:
+                self._sync_playlist(playlist_path.relative_to(self._args.playlist_src))
+            except IOError as err:
+                logger.error("Error: {}", err)
 
     def _sync_playlist(self, filename):
         """Sync playlist."""
         logger.info("Syncing playlist {}", filename)
-        srcpath = os.path.join(self._args.playlist_src, filename)
-        destpath = os.path.join(self._args.audio_dest, filename)
+        srcpath = self._args.playlist_src / filename
+        destpath = self._args.audio_dest / filename
 
-        if os.path.exists(destpath):
-            os.remove(destpath)
+        if destpath.exists():
+            destpath.unlink()
 
         # Copy file
         with codecs.open(srcpath, "r", encoding="windows-1252") as in_file:
@@ -260,13 +253,19 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
 
     # Read default settings from config file
     if args.config_file is None:
-        args.config_file = util.makepath("~/.sync_music")
+        args.config_file = pathlib.Path("~/.sync_music")
     config = configparser.ConfigParser()
     config.read([args.config_file])
     try:
         defaults = dict(config.items("Defaults"))
     except configparser.NoSectionError:
         defaults = {}
+
+    def _pathlib_dir(path):
+        path = pathlib.Path(path)
+        if path.is_dir():
+            return path
+        raise argparse.ArgumentTypeError("{} is not a valid path".format(str(path)))
 
     # ArgumentParser 2: Get rest of the arguments
     parser = argparse.ArgumentParser(parents=[config_parser])
@@ -280,26 +279,28 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
     parser.add_argument(
         "-o",
         "--logfile",
-        type=str,
-        default="./sync_music.log",
+        type=pathlib.Path,
+        default=pathlib.Path("sync_music.log"),
         help="write log output to file",
     )
 
     parser_paths = parser.add_argument_group("Paths")
     parser_paths.add_argument(
         "--audio-src",
-        type=str,
+        type=_pathlib_dir,
         required="audio_src" not in defaults,
         help="folder containing the audio sources",
     )
     parser_paths.add_argument(
         "--audio-dest",
-        type=str,
+        type=_pathlib_dir,
         required="audio_dest" not in defaults,
         help="target directory for converted files",
     )
     parser_paths.add_argument(
-        "--playlist-src", type=str, help="folder containing the source playlists"
+        "--playlist-src",
+        type=_pathlib_dir,
+        help="folder containing the source playlists",
     )
 
     # Audio sync options
@@ -378,28 +379,15 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
     # Parse
     settings = parser.parse_args(remaining_argv)
 
-    # Check required arguments and make absolute paths
-    try:
-        # pylint: disable=too-many-boolean-expressions
-        if settings.mode == "copy" and (
-            settings.albumartist_artist_hack
-            or settings.albumartist_composer_hack
-            or settings.artist_albumartist_hack
-            or settings.discnumber_hack
-            or settings.tracknumber_hack
-        ):
-            parser.error("hacks cannot be used in copy mode")
-        paths = ["audio_src", "audio_dest"]
-        if settings.playlist_src is not None:
-            paths.append("playlist_src")
-        settings_dict = vars(settings)
-        util.ensure_directory_exists(util.makepath(settings_dict["audio_dest"]))
-        for path in paths:
-            settings_dict[path] = util.makepath(settings_dict[path])
-            if not os.path.isdir(settings_dict[path]):
-                raise IOError("{} is not a directory".format(settings_dict[path]))
-    except IOError as err:
-        parser.error(err)
+    # Check required arguments
+    if settings.mode == "copy" and (  # pylint: disable=too-many-boolean-expressions
+        settings.albumartist_artist_hack
+        or settings.albumartist_composer_hack
+        or settings.artist_albumartist_hack
+        or settings.discnumber_hack
+        or settings.tracknumber_hack
+    ):
+        parser.error("hacks cannot be used in copy mode")
 
     return settings
 

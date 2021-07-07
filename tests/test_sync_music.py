@@ -17,7 +17,7 @@
 
 """Tests sync_music."""
 
-import os
+import pathlib
 import shutil
 
 from unittest import mock
@@ -67,16 +67,16 @@ class TestSyncMusicSettings:
     @staticmethod
     def test_configfile():
         """Tests loading of settings within config file."""
-        filename = "/tmp/sync_music.cfg"
-        argv = ["-c", filename]
-        with open(filename, "w") as configfile:
+        configpath = pathlib.Path("/tmp/sync_music.cfg")
+        argv = ["-c", str(configpath)]
+        with configpath.open("w") as configfile:
             configfile.write("[Defaults]\n")
             configfile.write("audio_src=/tmp\n")
             configfile.write("audio_dest=/tmp\n")
         try:
             load_settings(argv)
         finally:
-            os.remove(filename)
+            configpath.unlink()
 
 
 class TestSyncMusicFiles:
@@ -98,9 +98,9 @@ class TestSyncMusicFiles:
     ]
 
     @pytest.fixture(autouse=True)
-    def init_output_path(self, tmpdir):
+    def init_output_path(self, tmp_path):
         """Setup temporary output directory."""
-        self.output_path = str(tmpdir)
+        self.output_path = tmp_path
 
     def _execute_sync_music(
         self, input_path=input_path, output_files=None, arguments=None, jobs=None
@@ -109,12 +109,14 @@ class TestSyncMusicFiles:
         if output_files is None:
             output_files = self.output_files
         argv = [] if arguments is None else arguments
-        argv += ["--audio-src", input_path, "--audio-dest", self.output_path]
+        argv += ["--audio-src", str(input_path), "--audio-dest", str(self.output_path)]
         args = load_settings(argv)
         args.jobs = 1 if jobs is None else jobs
         sync_music = SyncMusic(args)
         sync_music.sync_audio()
-        assert set(list_all_files(self.output_path)) == set(output_files)
+        assert set(list_all_files(self.output_path)) == {
+            pathlib.Path(file) for file in output_files
+        }
 
     def test_emptyfolder(self):
         """Test empty input folder."""
@@ -169,11 +171,11 @@ class TestSyncMusicFiles:
             self._execute_sync_music(input_path, output_files)
 
         # Delete a file also in output directory (to check double deletion)
-        os.remove(os.path.join(self.output_path, "withtags_ogg.mp3"))
+        (self.output_path / "withtags_ogg.mp3").unlink()
 
         # Simulate OSError by creating a folder (that can't be removed)
-        os.remove(os.path.join(self.output_path, "withtags_mp3.mp3"))
-        os.mkdir(os.path.join(self.output_path, "withtags_mp3.mp3"))
+        (self.output_path / "withtags_mp3.mp3").unlink()
+        (self.output_path / "withtags_mp3.mp3").mkdir()
 
         # Second run: delete files
         def query_yes(_):
@@ -255,19 +257,19 @@ class TestSyncMusicPlaylists:
     playlist_path = "tests/reference_data/playlists"
 
     @pytest.fixture(autouse=True)
-    def init_output_path(self, tmpdir):
+    def init_output_path(self, tmp_path):
         """Setup temporary output directory."""
-        self.output_path = str(tmpdir)
+        self.output_path = tmp_path
 
     def _execute_sync_music(self, playlist_path=playlist_path):
         """Helper method to run sync_music tests."""
         argv = [
             "--audio-src",
-            self.input_path,
+            str(self.input_path),
             "--audio-dest",
-            self.output_path,
+            str(self.output_path),
             "--playlist-src",
-            playlist_path,
+            str(playlist_path),
         ]
         args = load_settings(argv)
         sync_music = SyncMusic(args)
@@ -282,11 +284,11 @@ class TestSyncMusicPlaylists:
         """Tests playlist generation when playlist exists."""
         shutil.copy(
             "tests/reference_data/playlists/normal.m3u",
-            os.path.join(self.output_path, "normal.m3u"),
+            self.output_path / "normal.m3u",
         )
         self._execute_sync_music()
 
     def test_playlists_ioerror(self):
         """Tests playlist generation with playlist that can't be opened."""
-        os.symlink("/dev/null", os.path.join(self.output_path, "null.m3u"))
+        (self.output_path / "null.m3u").symlink_to("/dev/null")
         self._execute_sync_music(self.output_path)

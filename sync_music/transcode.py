@@ -20,7 +20,6 @@
 import base64
 import collections
 import logging
-import os
 import shutil
 
 import audiotools
@@ -104,13 +103,13 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
 
     def get_out_filename(self, path):
         """Determine output file path."""
-        return os.path.splitext(path)[0] + "." + self._format.SUFFIX
+        return path.with_suffix("." + self._format.SUFFIX)
 
     def execute(self, in_filepath, out_filepath):
         """Executes action."""
         if self._transcode:
             if self._mode == "auto":
-                if os.path.splitext(in_filepath)[1] != "." + self._format.SUFFIX:
+                if in_filepath.suffix != "." + self._format.SUFFIX:
                     self.transcode(in_filepath, out_filepath)
                 else:
                     self.copy(in_filepath, out_filepath)
@@ -154,11 +153,11 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         logger.info("Transcoding from {} to {}", in_filepath, out_filepath)
         try:
             if not self._mode.startswith("replaygain"):
-                audiotools.open(in_filepath).convert(
-                    out_filepath, self._format, compression=self._compression
+                audiotools.open(str(in_filepath)).convert(
+                    str(out_filepath), self._format, compression=self._compression
                 )
             else:
-                in_file = audiotools.open(in_filepath)
+                in_file = audiotools.open(str(in_filepath))
                 rp_info = self.get_replaygain(in_filepath)
                 if rp_info:
                     pcmreader = audiotools.replaygain.ReplayGainReader(
@@ -167,12 +166,12 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                         rp_info.peak,
                     )
                     self._format.from_pcm(
-                        out_filepath, pcmreader, compression=self._compression
+                        str(out_filepath), pcmreader, compression=self._compression
                     )
                 else:
                     logger.warning("No ReplayGain info found {}", in_filepath)
-                    audiotools.open(in_filepath).convert(
-                        out_filepath, self._format, compression=self._compression
+                    audiotools.open(str(in_filepath)).convert(
+                        str(out_filepath), self._format, compression=self._compression
                     )
         except (audiotools.EncodingError, audiotools.UnsupportedFile) as err:
             raise IOError(
@@ -331,9 +330,9 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
     def copy_folder_image_to_id3(cls, in_filename, dest_tags):
         """Copy folder.jpg to ID3 tag."""
         if "APIC:" not in dest_tags:
-            image = os.path.join(os.path.dirname(in_filename), "folder.jpg")
-            if os.path.exists(image):
-                with open(image, "rb") as image_file:
+            image = in_filename.parent / "folder.jpg"
+            if image.exists():
+                with image.open("rb") as image_file:
                     img = image_file.read()
                 dest_tags.add(mutagen.id3.APIC(3, "image/jpg", 3, "", img))
 
