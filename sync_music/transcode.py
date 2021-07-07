@@ -26,11 +26,7 @@ import audiotools
 import audiotools.replaygain
 import mutagen
 
-from . import util
-
-logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
-    logging.getLogger(__name__)
-)
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class Transcode:  # pylint: disable=too-many-instance-attributes
@@ -53,8 +49,8 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
         self._compression = "standard"
 
         logger.info("Transcoding settings:")
-        logger.info(" - Audiotools {}".format(audiotools.VERSION))
-        logger.info(" - Mutagen {}".format(mutagen.version_string))
+        logger.info(" - Audiotools %s", audiotools.VERSION)
+        logger.info(" - Mutagen %s", mutagen.version_string)
         self._mode = mode
         self._transcode = transcode
         if transcode and mode in [
@@ -64,16 +60,14 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
             "replaygain-album",
         ]:
             logger.info(
-                " - Converting to {} in quality {}".format(
-                    self._format.NAME, self._compression
-                )
+                " - Converting to %s in quality %s",
+                self._format.NAME,
+                self._compression,
             )
             self._replaygain_preamp_gain = replaygain_preamp_gain
             if mode.startswith("replaygain") and replaygain_preamp_gain != 0.0:
                 logger.info(
-                    " - Applying ReplayGain pre-amp gain {}".format(
-                        replaygain_preamp_gain
-                    )
+                    " - Applying ReplayGain pre-amp gain %s", replaygain_preamp_gain
                 )
         else:
             logger.info(" - Skipping transcoding")
@@ -122,7 +116,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
     @classmethod
     def copy(cls, in_filepath, out_filepath):
         """Copying audio file."""
-        logger.info("Copying from {} to {}", in_filepath, out_filepath)
+        logger.info("Copying from %s to %s", in_filepath, out_filepath)
         shutil.copy(in_filepath, out_filepath)
 
     def get_replaygain(self, in_filepath):
@@ -150,7 +144,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
 
     def transcode(self, in_filepath, out_filepath):
         """Transcode audio file."""
-        logger.info("Transcoding from {} to {}", in_filepath, out_filepath)
+        logger.info("Transcoding from %s to %s", in_filepath, out_filepath)
         try:
             if not self._mode.startswith("replaygain"):
                 audiotools.open(str(in_filepath)).convert(
@@ -169,7 +163,7 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
                         str(out_filepath), pcmreader, compression=self._compression
                     )
                 else:
-                    logger.warning("No ReplayGain info found {}", in_filepath)
+                    logger.warning("No ReplayGain info found %s", in_filepath)
                     audiotools.open(str(in_filepath)).convert(
                         str(out_filepath), self._format, compression=self._compression
                     )

@@ -36,9 +36,7 @@ from .transcode import Transcode
 
 __version__ = pbr.version.VersionInfo("sync_music").release_string()
 
-logger = util.LogStyleAdapter(  # pylint: disable=invalid-name
-    logging.getLogger(__name__)
-)
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class SyncMusic:
@@ -51,11 +49,11 @@ class SyncMusic:
         self._args = args
         self._hashdb = HashDb(args.audio_dest / "sync_music.db")
         logger.info("Settings:")
-        logger.info(" - audio-src:  {}".format(args.audio_src))
-        logger.info(" - audio-dest: {}".format(args.audio_dest))
+        logger.info(" - audio-src:  %s", args.audio_src)
+        logger.info(" - audio-dest: %s", args.audio_dest)
         if args.playlist_src:
-            logger.info(" - playlist-src: {}".format(args.playlist_src))
-        logger.info(" - mode: {}".format(args.mode))
+            logger.info(" - playlist-src: %s", args.playlist_src)
+        logger.info(" - mode: %s", args.mode)
         logger.info("")
         self._action_copy = Copy()
         self._action_skip = Skip()
@@ -82,7 +80,7 @@ class SyncMusic:
         if out_filename is not None:
             out_filename = util.correct_path_fat32(out_filename)
             logger.info(
-                "{:04}/{:04}: {} {} to {}",
+                "%04d/%04d: %s %s to %s",
                 file_index,
                 total_files,
                 action.name,
@@ -91,7 +89,7 @@ class SyncMusic:
             )
         else:
             logger.info(
-                "{:04}/{:04}: {} {}", file_index, total_files, action.name, in_filename
+                "%04d/%04d: %s %s", file_index, total_files, action.name, in_filename
             )
             return None
 
@@ -115,7 +113,7 @@ class SyncMusic:
             try:
                 action.execute(in_filepath, out_filepath)
             except IOError as err:
-                logger.error("Error: {}", err)
+                logger.error("Error: %s", err)
                 return None
             return (in_filename, out_filename, hash_current)
         logger.info("Skipping up to date file")
@@ -151,7 +149,7 @@ class SyncMusic:
                         try:
                             out_filepath.unlink()
                         except OSError as err:
-                            logger.error("Error: Failed to remove file {}", err)
+                            logger.error("Error: Failed to remove file %s", err)
                 if not out_filepath.exists():
                     del self._hashdb.database[str(in_filename)]
 
@@ -207,11 +205,11 @@ class SyncMusic:
             try:
                 self._sync_playlist(playlist_path.relative_to(self._args.playlist_src))
             except IOError as err:
-                logger.error("Error: {}", err)
+                logger.error("Error: %s", err)
 
     def _sync_playlist(self, filename):
         """Sync playlist."""
-        logger.info("Syncing playlist {}", filename)
+        logger.info("Syncing playlist %s", filename)
         srcpath = self._args.playlist_src / filename
         destpath = self._args.audio_dest / filename
 
@@ -232,7 +230,7 @@ class SyncMusic:
                                     break
                                 in_filename = in_filename.split("/", 1)[1]
                         except IndexError:
-                            logger.warning("File does not exist: {}", line)
+                            logger.warning("File does not exist: %s", line)
                             continue
                     line = line + "\r\n"
                     out_file.write(line)
@@ -420,7 +418,7 @@ def main():  # pragma: no cover
     try:
         sync_music.sync_audio()
     except FileNotFoundError as err:
-        logger.critical("Failed to sync music {}", err)
+        logger.critical("Failed to sync music %s", err)
         sys.exit(1)
 
     if args.playlist_src:
