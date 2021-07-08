@@ -18,6 +18,7 @@
 """sync_music - Sync music library to external device."""
 
 import codecs
+import collections
 import logging
 import argparse
 import configparser
@@ -37,6 +38,11 @@ from .transcode import Transcode
 __version__ = pbr.version.VersionInfo("sync_music").release_string()
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
+
+FileTask = collections.namedtuple(
+    "FileTask", ["index", "total", "in_filename", "action"]
+)
 
 
 class SyncMusic:
@@ -69,38 +75,33 @@ class SyncMusic:
             tracknumber_hack=self._args.tracknumber_hack,
         )
 
-    def _process_file(self, current_file):
+    def _process_file(self, file_task):
         """Process single file.
 
-        :param current_file: tuple:
-            (file_index, total_files, in_filename, action)
+        :param current_file: FileTask(index, total, in_filename, action)
         """
-        file_index, total_files, in_filename, action = current_file
-        out_filename = action.get_out_filename(in_filename)
+        out_filename = file_task.action.get_out_filename(file_task.in_filename)
         if out_filename is not None:
             out_filename = util.correct_path_fat32(out_filename)
-            logger.info(
-                "%04d/%04d: %s %s to %s",
-                file_index,
-                total_files,
-                action.name,
-                in_filename,
-                out_filename,
-            )
-        else:
-            logger.info(
-                "%04d/%04d: %s %s", file_index, total_files, action.name, in_filename
-            )
+        logger.info(
+            "%04d/%04d: %s %s%s",
+            file_task.index,
+            file_task.total,
+            file_task.action.name,
+            file_task.in_filename,
+            f" to {out_filename}" if out_filename else "",
+        )
+        if not out_filename:
             return None
 
-        in_filepath = self._args.audio_src / in_filename
+        in_filepath = self._args.audio_src / file_task.in_filename
         out_filepath = self._args.audio_dest / out_filename
 
         # Calculate hash to see if the input file has changed
         hash_current = self._hashdb.get_hash(in_filepath)
         hash_database = None
-        if str(in_filename) in self._hashdb.database:
-            hash_database = self._hashdb.database[str(in_filename)][1]
+        if str(file_task.in_filename) in self._hashdb.database:
+            hash_database = self._hashdb.database[str(file_task.in_filename)][1]
 
         if (
             self._args.force
@@ -111,11 +112,15 @@ class SyncMusic:
             out_filepath.parent.mkdir(parents=True, exist_ok=True)
 
             try:
-                action.execute(in_filepath, out_filepath)
+                file_task.action.execute(in_filepath, out_filepath)
             except IOError as err:
                 logger.error("Error: %s", err)
                 return None
-            return (in_filename, out_filename, hash_current)
+
+            # We can't store to the hashdb here because this is executed in multiple threads.
+
+            return (file_task.in_filename, out_filename, hash_current)
+
         logger.info("Skipping up to date file")
         return None
 
@@ -158,14 +163,7 @@ class SyncMusic:
         """Sync audio."""
         self._hashdb.load()
 
-        files = [
-            (
-                f,
-                self._get_file_action(f),
-            )
-            for f in util.list_all_files(self._args.audio_src)
-        ]
-        files = [(index, len(files), f[0], f[1]) for index, f in enumerate(files, 1)]
+        files = list(util.list_all_files(self._args.audio_src))
         if not files:
             raise FileNotFoundError("No input files")
 
@@ -174,27 +172,30 @@ class SyncMusic:
 
         # Do the work
         logger.info("Starting actions")
+        file_tasks = [
+            FileTask(index, len(files), file, self._get_file_action(file))
+            for index, file in enumerate(files, 1)
+        ]
+        file_hashes = []
         try:
             if self._args.jobs == 1:
                 # pool.map doesn't might not show all exceptions
-                file_hashes = []
-                for current_file in files:
-                    file_hashes.append(self._process_file(current_file))
+                for file_task in file_tasks:
+                    file_hashes.append(self._process_file(file_task))
             else:
                 with Pool(processes=self._args.jobs) as pool:
-                    file_hashes = pool.map(self._process_file, files)
+                    file_hashes = pool.map(self._process_file, file_tasks)
         except:  # noqa, pylint: disable=bare-except
             logger.error(">>> traceback <<<")
             logger.exception("Exception")
             logger.error(">>> end of traceback <<<")
 
         # Store new hashes in the database
-        for file_hash in file_hashes:
-            if file_hash is not None:
-                self._hashdb.database[str(file_hash[0])] = (
-                    str(file_hash[1]),
-                    file_hash[2],
-                )
+        for file_hash in filter(None, file_hashes):
+            self._hashdb.database[str(file_hash[0])] = (
+                str(file_hash[1]),
+                file_hash[2],
+            )
         self._hashdb.store()
 
     def sync_playlists(self):
