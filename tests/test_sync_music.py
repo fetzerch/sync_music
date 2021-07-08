@@ -51,13 +51,13 @@ class TestSyncMusicSettings:
             load_settings(argv)
 
     @staticmethod
-    def test_forcecopy_with_hacks():
+    def test_forcecopy_with_hacks(tmp_path):
         """Tests loading of settings with force copy and hacks."""
         argv = [
             "--audio-src",
-            "/tmp",
+            str(tmp_path),
             "--audio-dest",
-            "/tmp",
+            str(tmp_path),
             "--mode=copy",
             "--albumartist-artist-hack",
         ]
@@ -65,18 +65,15 @@ class TestSyncMusicSettings:
             load_settings(argv)
 
     @staticmethod
-    def test_configfile():
+    def test_configfile(tmp_path):
         """Tests loading of settings within config file."""
-        configpath = pathlib.Path("/tmp/sync_music.cfg")
+        configpath = tmp_path / "sync_music.cfg"
         argv = ["-c", str(configpath)]
         with configpath.open("w") as configfile:
             configfile.write("[Defaults]\n")
-            configfile.write("audio_src=/tmp\n")
-            configfile.write("audio_dest=/tmp\n")
-        try:
-            load_settings(argv)
-        finally:
-            configpath.unlink()
+            configfile.write(f"audio_src={str(tmp_path)}\n")
+            configfile.write(f"audio_dest={str(tmp_path)}\n")
+        load_settings(argv)
 
 
 class TestSyncMusicFiles:
