@@ -98,10 +98,8 @@ class SyncMusic:
         out_filepath = self._args.audio_dest / out_filename
 
         # Calculate hash to see if the input file has changed
-        hash_current = self._hashdb.get_hash(in_filepath)
-        hash_database = None
-        if str(file_task.in_filename) in self._hashdb.database:
-            hash_database = self._hashdb.database[str(file_task.in_filename)][1]
+        hash_current = self._hashdb.calculate_hash(in_filepath)
+        _, hash_database = self._hashdb.get_item(file_task.in_filename)
 
         if (
             self._args.force
@@ -139,8 +137,7 @@ class SyncMusic:
         exist anymore. This can lead to empty directories, remove them as well.
         """
         logger.info("Cleaning up missing files")
-        files = [(k, v[0]) for k, v in self._hashdb.database.items()]
-        for in_filename, out_filename in files:
+        for in_filename, out_filename, _ in list(self._hashdb.get_items()):
             in_filepath = self._args.audio_src / in_filename
             out_filepath = self._args.audio_dest / out_filename
 
@@ -154,57 +151,55 @@ class SyncMusic:
                         except OSError as err:
                             logger.error("Error: Failed to remove file %s", err)
                 if not out_filepath.exists():
-                    del self._hashdb.database[str(in_filename)]
+                    self._hashdb.delete_item(in_filename)
 
         logger.info("Cleaning up empty directories")
         util.delete_empty_directories(self._args.audio_dest)
 
     def sync_audio(self):
         """Sync audio."""
-        self._hashdb.load()
+        with self._hashdb:
+            files = list(util.list_all_files(self._args.audio_src))
+            if not files:
+                raise FileNotFoundError("No input files")
 
-        files = list(util.list_all_files(self._args.audio_src))
-        if not files:
-            raise FileNotFoundError("No input files")
+            # Cleanup files that do not exist any more and empty directories
+            self._clean_up_missing_files()
 
-        # Cleanup files that do not exist any more and empty directories
-        self._clean_up_missing_files()
+            # Do the work
+            logger.info("Starting actions")
+            file_tasks = [
+                FileTask(index, len(files), file, self._get_file_action(file))
+                for index, file in enumerate(files, 1)
+            ]
+            file_hashes = []
+            try:
+                if self._args.jobs == 1:
+                    # pool.map doesn't might not show all exceptions
+                    for file_task in file_tasks:
+                        file_hashes.append(self._process_file(file_task))
+                else:
+                    with Pool(processes=self._args.jobs) as pool:
+                        file_hashes = pool.map(self._process_file, file_tasks)
 
-        # Do the work
-        logger.info("Starting actions")
-        file_tasks = [
-            FileTask(index, len(files), file, self._get_file_action(file))
-            for index, file in enumerate(files, 1)
-        ]
-        file_hashes = []
-        try:
-            if self._args.jobs == 1:
-                # pool.map doesn't might not show all exceptions
-                for file_task in file_tasks:
-                    file_hashes.append(self._process_file(file_task))
-            else:
-                with Pool(processes=self._args.jobs) as pool:
-                    file_hashes = pool.map(self._process_file, file_tasks)
-        except:  # noqa, pylint: disable=bare-except
-            logger.error(">>> traceback <<<")
-            logger.exception("Exception")
-            logger.error(">>> end of traceback <<<")
+            except:  # noqa, pylint: disable=bare-except
+                logger.error(">>> traceback <<<")
+                logger.exception("Exception")
+                logger.error(">>> end of traceback <<<")
 
-        # Store new hashes in the database
-        for file_hash in filter(None, file_hashes):
-            self._hashdb.database[str(file_hash[0])] = (
-                str(file_hash[1]),
-                file_hash[2],
-            )
-        self._hashdb.store()
+            for file_hash in filter(None, file_hashes):
+                self._hashdb.add_item(*file_hash)
 
     def sync_playlists(self):
         """Sync m3u playlists."""
-        for playlist_path in self._args.playlist_src.rglob("*.m3u"):
-            try:
-                self._sync_playlist(playlist_path.relative_to(self._args.playlist_src))
-            except IOError as err:
-                logger.error("Error: %s", err)
+        with self._hashdb:
+            for playlist_path in self._args.playlist_src.rglob("*.m3u"):
+                try:
+                    self._sync_playlist(
+                        playlist_path.relative_to(self._args.playlist_src)
+                    )
+                except IOError as err:
+                    logger.error("Error: %s", err)
 
     def _sync_playlist(self, filename):
         """Sync playlist."""
@@ -223,9 +218,9 @@ class SyncMusic:
                         in_filename = line
                         try:
                             while True:
-                                if in_filename in self._hashdb.database:
-                                    line = self._hashdb.database[in_filename][0]
-                                    line = line.replace("/", "\\")
+                                out_filename, _ = self._hashdb.get_item(in_filename)
+                                if out_filename:
+                                    line = out_filename.replace("/", "\\")
                                     break
                                 in_filename = in_filename.split("/", 1)[1]
                         except IndexError:

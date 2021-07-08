@@ -27,9 +27,6 @@ from sync_music.sync_music import HashDb
 class TestHashDb:
     """Tests the HashDb implementation."""
 
-    # Format: { in_filename : (out_filename, hash) }
-    data = {"test1": ("test2", "test3"), "test_utf8": ("test_äöüß", "test_ÄÖÜß")}
-
     @staticmethod
     @pytest.fixture()
     def testfile(tmp_path):
@@ -37,32 +34,35 @@ class TestHashDb:
         return tmp_path / "test_hashdb.db"
 
     @staticmethod
-    def test_nonexistent():
-        """Test non existent file."""
-        hashdb = HashDb(pathlib.Path("/proc/nonexistent"))
-        hashdb.load()
-        assert hashdb.database == {}
-
-    def test_writeerror(self):
-        """Test write error."""
-        hashdb = HashDb(pathlib.Path("/proc/nonexistent"))
-        hashdb.database = self.data
-        hashdb.store()
-        hashdb.database = {}
-        hashdb.load()
-        assert hashdb.database == {}
-
-    def test_storeandload(self, testfile):
+    def test_storeandload(testfile):
         """Test normal operation."""
-        hashdb = HashDb(testfile)
-        hashdb.database = self.data
-        hashdb.store()
-        hashdb.load()
-        assert hashdb.database == self.data
+        with HashDb(testfile) as hashdb:
+            hashdb.add_item("test1", "test2", "test3")
+        with HashDb(testfile) as hashdb:
+            assert hashdb.get_item("test1") == ("test2", "test3")
+            hashdb.delete_item("test1")
+        with HashDb(testfile) as hashdb:
+            assert not list(hashdb.get_items())
+
+    @staticmethod
+    def test_writeerror():
+        """Test write error."""
+        with HashDb(pathlib.Path("/proc/nonexistent")) as hashdb:
+            hashdb.add_item("test1", "test2", "test3")
+
+        with HashDb(pathlib.Path("/proc/nonexistent")) as hashdb:
+            assert not list(hashdb.get_items())
 
     @staticmethod
     def test_hash(testfile):
         """Test file hashing."""
         with testfile.open("wb") as out_file:
             out_file.write(b"TEST")
-        assert HashDb.get_hash(testfile) == "033bd94b1168d7e4f0d644c3c95e35bf"
+        assert HashDb.calculate_hash(testfile) == "033bd94b1168d7e4f0d644c3c95e35bf"
+
+    @staticmethod
+    def test_internals(testfile):
+        """Test potential API usage problems"""
+        hashdb = HashDb(testfile)
+        with pytest.raises(RuntimeError, match=r".*context manager.*"):
+            hashdb.get_items()

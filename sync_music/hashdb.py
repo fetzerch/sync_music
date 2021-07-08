@@ -17,6 +17,8 @@
 
 """HashDb."""
 
+import contextlib
+import functools
 import logging
 import pickle
 import hashlib
@@ -24,34 +26,70 @@ import hashlib
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-class HashDb:
+class HashDb(contextlib.ContextDecorator):
     """Lightwight database for file hash values."""
 
     def __init__(self, path):
-        self.database = {}
-        self.path = path
+        self._path = path
+        self._database = None
 
-    def load(self):
-        """Load hash database to disk."""
-        if self.path.exists():
-            logger.info("Loading hash database from %s", self.path)
-            with self.path.open("rb") as hash_file:
-                self.database = pickle.load(hash_file, encoding="utf-8")
+    def __enter__(self):
+        """Load hash database from disk."""
+        if self._path.exists():
+            logger.info("Loading hash database from %s", self._path)
+            with self._path.open("rb") as database_file:
+                self._database = pickle.load(database_file, encoding="utf-8")
         else:
-            logger.info("No hash database file %s", self.path)
+            logger.info("No hash database file %s", self._path)
+            self._database = {}
+        return self
 
-    def store(self):
+    def __exit__(self, *exc):
         """Store hash database to disk."""
-        logger.info("Storing hash database to %s", self.path)
+        logger.info("Storing hash database to %s", self._path)
         try:
-            with self.path.open("wb") as hash_file:
-                pickle.dump(self.database, hash_file)
+            with self._path.open("wb") as database_file:
+                pickle.dump(self._database, database_file)
         except IOError:
-            logger.error("Error: Failed to write hash database to %s", self.path)
+            logger.error("Error: Failed to write hash database to %s", self._path)
+        self._database = None
+
+    class _Decorators:  # pylint: disable=too-few-public-methods
+        @staticmethod
+        def ensure_context_manager(func):
+            """Ensure that the HashDb is opened within a context manager"""
+
+            @functools.wraps(func)
+            def wrapper(self, *args, **kwargs):
+                if self._database is None:  # pylint: disable=protected-access
+                    raise RuntimeError("Method must be used within context manager")
+                return func(self, *args, **kwargs)
+
+            return wrapper
+
+    @_Decorators.ensure_context_manager
+    def get_items(self):
+        """Returns a list of (in_filename, out_filename, hash) tuples"""
+        return ((k, *v) for k, v in self._database.items())
+
+    @_Decorators.ensure_context_manager
+    def get_item(self, in_filename):
+        """Get a single item from the database"""
+        return self._database.get(str(in_filename), (None, None))
+
+    @_Decorators.ensure_context_manager
+    def add_item(self, in_filename, out_filename, file_hash):
+        """Add item  to the database"""
+        self._database[str(in_filename)] = (str(out_filename), file_hash)
+
+    @_Decorators.ensure_context_manager
+    def delete_item(self, in_filename):
+        """Delete item from the database"""
+        del self._database[str(in_filename)]
 
     @classmethod
-    def get_hash(cls, path):
+    def calculate_hash(cls, path):
         """Calculate hash value for the given path."""
-        with path.open("rb") as hash_file:
-            hash_buffer = hash_file.read(4096)
+        with path.open("rb") as input_file:
+            hash_buffer = input_file.read(4096)
         return hashlib.md5(hash_buffer).hexdigest()
