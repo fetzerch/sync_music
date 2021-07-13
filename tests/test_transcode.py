@@ -65,18 +65,15 @@ class TestTranscode:
 
     def test_transcode_default(self):
         """Test transcoding with default options."""
+        self.execute_transcode(Transcode(), in_filename=self.in_filename_mp3)
+        self.execute_transcode(Transcode(), in_filename=self.in_filename_mp3all)
+        self.execute_transcode(Transcode(), in_filename=self.in_filename_mp3empty)
         self.execute_transcode(Transcode(), in_filename=self.in_filename_flac)
         self.execute_transcode(Transcode(), in_filename=self.in_filename_flacall)
         self.execute_transcode(Transcode(), in_filename=self.in_filename_flacempty)
         self.execute_transcode(Transcode(), in_filename=self.in_filename_ogg)
         self.execute_transcode(Transcode(), in_filename=self.in_filename_oggall)
         self.execute_transcode(Transcode(), in_filename=self.in_filename_oggempty)
-
-    def test_transcode_copy(self):
-        """Tests transcoding with copying instead of transcoding."""
-        self.execute_transcode(Transcode(), in_filename=self.in_filename_mp3)
-        self.execute_transcode(Transcode(), in_filename=self.in_filename_mp3all)
-        self.execute_transcode(Transcode(), in_filename=self.in_filename_mp3empty)
 
     def test_transcode_transcode(self):
         """Tests transcoding with forced transcode."""
@@ -164,7 +161,7 @@ class TestTranscode:
             self.output_path / self.out_filename,
         )
         with pytest.raises(IOError):
-            self.execute_transcode(Transcode(mode="copy"))
+            self.execute_transcode(Transcode(transcode=False))
 
     def test_transcodingerror_format(self):
         """Tests transcoding a non supported format."""

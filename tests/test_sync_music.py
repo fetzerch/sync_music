@@ -230,7 +230,7 @@ class TestSyncMusicFiles:
             side_effect=IOError("Mocked exception"),
         )
         mocker.patch(
-            "sync_music.actions.Copy.execute", side_effect=IOError("Mocked exception")
+            "sync_music.copy.Copy.execute", side_effect=IOError("Mocked exception")
         )
         self._execute_sync_music(output_files=["sync_music.db"])
 
@@ -241,7 +241,7 @@ class TestSyncMusicFiles:
             side_effect=Exception("Mocked exception"),
         )
         mocker.patch(
-            "sync_music.actions.Copy.execute", side_effect=Exception("Mocked exception")
+            "sync_music.copy.Copy.execute", side_effect=Exception("Mocked exception")
         )
         self._execute_sync_music(output_files=["sync_music.db"])
 

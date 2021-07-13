@@ -31,8 +31,7 @@ import pbr.version
 
 from . import util
 from .hashdb import HashDb
-from .actions import Copy
-from .actions import Skip
+from .copy import Copy
 from .transcode import Transcode
 
 __version__ = pbr.version.VersionInfo("sync_music").release_string()
@@ -62,7 +61,6 @@ class SyncMusic:
         logger.info(" - mode: %s", args.mode)
         logger.info("")
         self._action_copy = Copy()
-        self._action_skip = Skip()
         self._action_transcode = Transcode(
             mode=self._args.mode,
             replaygain_preamp_gain=self._args.replaygain_preamp_gain,
@@ -80,18 +78,22 @@ class SyncMusic:
 
         :param current_file: FileTask(index, total, in_filename, action)
         """
-        out_filename = file_task.action.get_out_filename(file_task.in_filename)
-        if out_filename is not None:
-            out_filename = util.correct_path_fat32(out_filename)
+        out_filename = (
+            util.correct_path_fat32(
+                file_task.action.get_out_filename(file_task.in_filename)
+            )
+            if file_task.action
+            else None
+        )
         logger.info(
             "%04d/%04d: %s %s%s",
             file_task.index,
             file_task.total,
-            file_task.action.name,
+            file_task.action.name if file_task.action else "Skipping",
             file_task.in_filename,
             f" to {out_filename}" if out_filename else "",
         )
-        if not out_filename:
+        if not file_task.action:
             return None
 
         in_filepath = self._args.audio_src / file_task.in_filename
@@ -124,13 +126,16 @@ class SyncMusic:
 
     def _get_file_action(self, in_filename):
         """Determine the action for the given file."""
-        if in_filename.suffix in [".flac", ".ogg", ".mp3"]:
-            if self._args.mode == "copy":
-                return self._action_copy
-            return self._action_transcode
         if in_filename.name.endswith("folder.jpg"):
             return self._action_copy
-        return self._action_skip
+        if in_filename.suffix in self._action_transcode.get_supported_filetypes():
+            if self._args.mode == "copy" or (
+                self._args.mode == "auto"
+                and in_filename.suffix == self._action_transcode.get_out_filetype()
+            ):
+                return self._action_copy
+            return self._action_transcode
+        return None
 
     def _clean_up_missing_files(self):
         """Remove files in the destination, where the source file doesn't

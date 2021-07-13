@@ -20,7 +20,6 @@
 import base64
 import collections
 import logging
-import shutil
 
 import audiotools
 import audiotools.replaygain
@@ -95,29 +94,26 @@ class Transcode:  # pylint: disable=too-many-instance-attributes
             logger.info(" - Remove track total from track number")
         logger.info("")
 
+    @staticmethod
+    def get_supported_filetypes():
+        """Determine supported file types."""
+        return [".flac", ".ogg", ".mp3"]
+
+    def get_out_filetype(self):
+        """Determine output file type."""
+        return f".{self._format.SUFFIX}"
+
     def get_out_filename(self, path):
         """Determine output file path."""
-        return path.with_suffix("." + self._format.SUFFIX)
+        return path.with_suffix(self.get_out_filetype())
 
     def execute(self, in_filepath, out_filepath):
         """Executes action."""
         if self._transcode:
-            if self._mode == "auto":
-                if in_filepath.suffix != "." + self._format.SUFFIX:
-                    self.transcode(in_filepath, out_filepath)
-                else:
-                    self.copy(in_filepath, out_filepath)
-            elif self._mode in ["transcode", "replaygain", "replaygain-album"]:
-                self.transcode(in_filepath, out_filepath)
+            self.transcode(in_filepath, out_filepath)
 
         if self._copy_tags:
             self.copy_tags(in_filepath, out_filepath)
-
-    @classmethod
-    def copy(cls, in_filepath, out_filepath):
-        """Copying audio file."""
-        logger.info("Copying from %s to %s", in_filepath, out_filepath)
-        shutil.copy(in_filepath, out_filepath)
 
     def get_replaygain(self, in_filepath):
         """Read ReplayGain info from tags."""
