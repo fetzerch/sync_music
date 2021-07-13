@@ -427,7 +427,11 @@ def main():  # pragma: no cover
         )
         rootlogger.addHandler(filelogger)
 
-    sync_music = SyncMusic(args)
+    try:
+        sync_music = SyncMusic(args)
+    except FileNotFoundError as err:
+        logger.critical("Failed to initialize sync music %s", err)
+        sys.exit(1)
 
     if not args.batch and not util.query_yes_no("Do you want to continue?"):
         sys.exit(1)

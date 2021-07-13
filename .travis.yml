@@ -2,10 +2,7 @@ language: python
 addons:
   apt:
     packages:
-      - lame
-      - libmp3lame-dev
-      - libmpg123-dev
-      - libvorbis-dev
+      - ffmpeg
 install: pip install tox
 script: tox
 

@@ -65,8 +65,6 @@ class TestTranscode:
     @staticmethod
     def test_transcode_transcodeerror():
         """Tests transcoding failure."""
-        # IOError is raised on audiotools.EncodingError. The easiest way that
-        # leads into this exception is writing to a non writable path.
         with pytest.raises(IOError):
             Transcode().execute(REFERENCE_FILES.FLAC, pathlib.Path("/"))
 

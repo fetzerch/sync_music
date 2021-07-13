@@ -6,7 +6,7 @@ cache:
 .tox:
   before_script:
     - apt-get update &&
-      apt-get install -y lame libmp3lame-dev libmpg123-dev libvorbis-dev
+      apt-get install -y ffmpeg
     - pip --cache-dir=.pip install tox
   script:
     - tox -- --junitxml=junit.xml --cov-report=xml:coverage.xml
