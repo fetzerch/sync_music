@@ -15,7 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-"""Basic actions."""
+"""Copy actions."""
 
 import shutil
 
@@ -35,18 +35,3 @@ class Copy:
     def execute(cls, in_filepath, out_filepath):
         """Executes action."""
         shutil.copy(in_filepath, out_filepath)
-
-
-class Skip:
-    """Skip action does nothing."""
-
-    def __init__(self):
-        self.name = "Skipping"
-
-    @classmethod
-    def get_out_filename(cls, _):
-        """Determine output file path."""
-
-    @classmethod
-    def execute(cls, in_filepath, out_filepath):  # pragma: no cover
-        """Executes action."""
