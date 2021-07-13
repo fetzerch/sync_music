@@ -32,6 +32,7 @@ import pbr.version
 from . import util
 from .hashdb import HashDb
 from .copy import Copy
+from .metadata import ProcessMetadata
 from .transcode import Transcode
 
 __version__ = pbr.version.VersionInfo("sync_music").release_string()
@@ -40,7 +41,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 FileTask = collections.namedtuple(
-    "FileTask", ["index", "total", "in_filename", "action"]
+    "FileTask", ["index", "total", "in_filename", "actions"]
 )
 
 
@@ -53,47 +54,58 @@ class SyncMusic:
         logger.info("")
         self._args = args
         self._hashdb = HashDb(args.audio_dest / "sync_music.db")
-        logger.info("Settings:")
-        logger.info(" - audio-src:  %s", args.audio_src)
-        logger.info(" - audio-dest: %s", args.audio_dest)
+        logger.info("Sync-Music Configuration:")
+        logger.info(" - audio-src:    %s", args.audio_src)
+        logger.info(" - audio-dest:   %s", args.audio_dest)
         if args.playlist_src:
             logger.info(" - playlist-src: %s", args.playlist_src)
-        logger.info(" - mode: %s", args.mode)
+        logger.info(" - mode:         %s", args.mode)
         logger.info("")
         self._action_copy = Copy()
-        self._action_transcode = Transcode(
-            mode=self._args.mode,
-            replaygain_preamp_gain=self._args.replaygain_preamp_gain,
-            transcode=not self._args.disable_file_processing,
-            copy_tags=not self._args.disable_tag_processing,
-            albumartist_artist_hack=self._args.albumartist_artist_hack,
-            albumartist_composer_hack=self._args.albumartist_composer_hack,
-            artist_albumartist_hack=self._args.artist_albumartist_hack,
-            discnumber_hack=self._args.discnumber_hack,
-            tracknumber_hack=self._args.tracknumber_hack,
+        self._action_transcode = (
+            Transcode(
+                mode=self._args.mode,
+                replaygain_preamp_gain=self._args.replaygain_preamp_gain,
+            )
+            if not self._args.disable_file_processing
+            else None
+        )
+        self._action_processmetadata = (
+            ProcessMetadata(
+                copy_replaygain="replaygain" not in self._args.mode,
+                albumartist_artist_hack=self._args.albumartist_artist_hack,
+                albumartist_composer_hack=self._args.albumartist_composer_hack,
+                artist_albumartist_hack=self._args.artist_albumartist_hack,
+                discnumber_hack=self._args.discnumber_hack,
+                tracknumber_hack=self._args.tracknumber_hack,
+            )
+            if not self._args.disable_tag_processing
+            else None
         )
 
     def _process_file(self, file_task):
         """Process single file.
 
-        :param current_file: FileTask(index, total, in_filename, action)
+        :param current_file: FileTask(index, total, in_filename, actions)
         """
         out_filename = (
             util.correct_path_fat32(
-                file_task.action.get_out_filename(file_task.in_filename)
+                file_task.actions[0].get_out_filename(file_task.in_filename)
             )
-            if file_task.action
+            if file_task.actions
             else None
         )
         logger.info(
             "%04d/%04d: %s %s%s",
             file_task.index,
             file_task.total,
-            file_task.action.name if file_task.action else "Skipping",
+            ", ".join(action.name for action in file_task.actions)
+            if file_task.actions
+            else "Skipping",
             file_task.in_filename,
             f" to {out_filename}" if out_filename else "",
         )
-        if not file_task.action:
+        if not file_task.actions:
             return None
 
         in_filepath = self._args.audio_src / file_task.in_filename
@@ -112,7 +124,8 @@ class SyncMusic:
             out_filepath.parent.mkdir(parents=True, exist_ok=True)
 
             try:
-                file_task.action.execute(in_filepath, out_filepath)
+                for action in file_task.actions:
+                    action.execute(in_filepath, out_filepath)
             except IOError as err:
                 logger.error("Error: %s", err)
                 return None
@@ -124,18 +137,23 @@ class SyncMusic:
         logger.info("Skipping up to date file")
         return None
 
-    def _get_file_action(self, in_filename):
+    def _get_file_actions(self, in_filename):
         """Determine the action for the given file."""
+        actions = []
         if in_filename.name.endswith("folder.jpg"):
-            return self._action_copy
-        if in_filename.suffix in self._action_transcode.get_supported_filetypes():
+            actions = [self._action_copy]
+        elif (
+            self._action_transcode
+            and in_filename.suffix in self._action_transcode.get_supported_filetypes()
+        ):
             if self._args.mode == "copy" or (
                 self._args.mode == "auto"
                 and in_filename.suffix == self._action_transcode.get_out_filetype()
             ):
-                return self._action_copy
-            return self._action_transcode
-        return None
+                actions = [self._action_copy]
+            else:
+                actions = [self._action_transcode, self._action_processmetadata]
+        return list(filter(None, actions))
 
     def _clean_up_missing_files(self):
         """Remove files in the destination, where the source file doesn't
@@ -174,7 +192,7 @@ class SyncMusic:
             # Do the work
             logger.info("Starting actions")
             file_tasks = [
-                FileTask(index, len(files), file, self._get_file_action(file))
+                FileTask(index, len(files), file, self._get_file_actions(file))
                 for index, file in enumerate(files, 1)
             ]
             file_hashes = []
