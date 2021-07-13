@@ -39,23 +39,17 @@ Dependencies
 ------------
 
 - Python >= 3.6
-- `Python Audio Tools`_ >= 3.0 (for transcoding to MP3)
+- FFmpeg_ (for transcoding to MP3)
 - Mutagen_ >= 1.29 (for tag manipulation)
 
 Installation
 ------------
 
-The first step is to install `Python Audio Tools`_ which depends on a couple of
-native libraries and doesn't offer a PyPI package. On Ubuntu 16.04 or later
+The first step is to install FFmpeg_. Most Linux distributions offer packages
+that can be directly installed. On Ubuntu 18.04 or later
 there's an official package that can simply be installed using::
 
-    # apt install audiotools
-
-As an alternative `Python Audio Tools`_ can be installed from source after the
-necessary native libraries are installed::
-
-    # apt install python3-dev lame libmp3lame-dev libmpg123-dev libvorbis-dev
-    # pip3 install https://github.com/tuffy/python-audio-tools/archive/master.zip
+    # apt install ffmpeg
 
 Then *sync_music* can be installed from PyPI with::
 
@@ -105,9 +99,9 @@ volume normalization from ReplayGain_ tags when transcoding::
 
     sync_music --audio-src=<FOLDER> --audio-dest=<FOLDER> --mode=replaygain
 
-Transcoding modes require that the MP3 files can be decoded by `Python
-Audio Tools`_ without issues. Problematic input files can be analyzed and fixed
-for example with `MP3 Diags`_.
+Transcoding modes require that the MP3 files can be decoded by FFMpeg_ without
+issues. Problematic input files can be analyzed and fixed for example with
+`MP3 Diags`_.
 
 Hacks
 ^^^^^
@@ -149,7 +143,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 `GNU General Public License <http://www.gnu.org/licenses/gpl-2.0.html>`_
 for more details.
 
-.. _`Python Audio Tools`: http://audiotools.sourceforge.net
+.. _FFMpeg: https://ffmpeg.org
 .. _`MP3 Diags`: http://mp3diags.sourceforge.net
 .. _Mutagen: https://mutagen.readthedocs.io
 .. _ReplayGain: https://en.wikipedia.org/wiki/ReplayGain
