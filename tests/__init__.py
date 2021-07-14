@@ -36,3 +36,8 @@ class REFERENCE_FILES:  # pylint: disable=invalid-name, too-few-public-methods
     MP3_EMPTY = REFERENCE_PATH / "stripped.mp3"
     MP3_BROKENTRACKNUMBER = REFERENCE_PATH / "brokentag_tracknumber.mp3"
     FOLDER_IMAGE = REFERENCE_PATH / "folder.jpg"
+
+
+def mutagen_filter_tags(mutagen_file, search):
+    """List filtered mutagen tag keys"""
+    return [tag for tag in mutagen_file.tags.keys() if search in tag]

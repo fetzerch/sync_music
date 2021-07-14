@@ -19,11 +19,12 @@
 
 import pathlib
 
+import mutagen
 import pytest
 
 from sync_music.transcode import ReplayGain, Transcode
 
-from tests import REFERENCE_FILES
+from tests import REFERENCE_FILES, mutagen_filter_tags
 
 
 def assert_approx_replaygain(rp1, rp2):
@@ -48,12 +49,22 @@ class TestTranscode:
         out_filename = transcode.get_out_filename(REFERENCE_FILES.FLAC)
         assert out_filename == REFERENCE_FILES.FLAC.with_suffix(".mp3")
 
+    DEFAULT_TEST_FILES = [
+        REFERENCE_FILES.MP3,
+        REFERENCE_FILES.FLAC,
+        REFERENCE_FILES.OGG,
+    ]
+
     @staticmethod
-    def test_transcode_default(out_path):
+    @pytest.mark.parametrize(
+        "in_path", DEFAULT_TEST_FILES, ids=[path.name for path in DEFAULT_TEST_FILES]
+    )
+    def test_transcode_default(in_path, out_path):
         """Test transcoding with default options."""
-        Transcode().execute(REFERENCE_FILES.MP3, out_path)
-        Transcode().execute(REFERENCE_FILES.FLAC, out_path)
-        Transcode().execute(REFERENCE_FILES.OGG, out_path)
+        Transcode().execute(in_path, out_path)
+        out_file = mutagen.File(out_path)
+        assert isinstance(out_file, mutagen.mp3.MP3)
+        assert out_file.info.bitrate_mode == mutagen.mp3.BitrateMode.VBR
 
     REPLAYGAIN_TEST_FILES = [
         REFERENCE_FILES.MP3_ALL,
@@ -72,6 +83,7 @@ class TestTranscode:
         Transcode(mode="replaygain").execute(in_path, out_path)
         rp_info = Transcode.calculate_replaygain(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(0.0, 0.25))
+        assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 
     @staticmethod
     def test_transcode_replaygain_preamp(out_path):
@@ -81,6 +93,7 @@ class TestTranscode:
         )
         rp_info = Transcode.calculate_replaygain(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(-10.0, 0.81))
+        assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 
     @staticmethod
     def test_transcode_replaygain_empty(out_path):
@@ -97,6 +110,7 @@ class TestTranscode:
         Transcode(mode="replaygain-album").execute(REFERENCE_FILES.MP3_ALL, out_path)
         rp_info = Transcode.calculate_replaygain(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(0.7, 0.25))
+        assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 
     @staticmethod
     def test_transcode_transcodeerror():
