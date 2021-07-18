@@ -170,3 +170,34 @@ class Transcode:
             )
         except (TypeError, KeyError):
             return None
+
+    @staticmethod
+    def calculate_replaygain(in_filepath):
+        """Calculate replaygain data for the given file."""
+        output = subprocess.check_output(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-nostdin",
+                "-i",
+                str(in_filepath),
+                "-af",
+                "ebur128=peak=sample:framelog=verbose",
+                "-f",
+                "null",
+                "-",
+            ],
+            stderr=subprocess.STDOUT,
+        )
+        # Parse lines such as:
+        #     I:         -11.3 LUFS
+        #     Peak:        0.1 dBFS
+        result = {
+            key: float(value)
+            for key, value in re.findall(
+                r"(\w+):\s+([+-]?\d+\.\d+)\s+(?:\w+)\n",
+                output.decode("utf-8"),
+            )
+        }
+        # Convert gain to ReplayGain v2.0 reference of 18 LUFS, convert peak dBFS to float
+        return ReplayGain(-(result["I"] + 18.0), 10 ** (result["Peak"] / 20.0))
