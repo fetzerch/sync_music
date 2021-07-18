@@ -21,9 +21,15 @@ import pathlib
 
 import pytest
 
-from sync_music.transcode import Transcode
+from sync_music.transcode import ReplayGain, Transcode
 
 from tests import REFERENCE_FILES
+
+
+def assert_approx_replaygain(rp1, rp2):
+    """Assert that two ReplayGain objects are approximately the same"""
+    assert rp1.gain == pytest.approx(rp2.gain, abs=0.5)
+    assert rp1.peak == pytest.approx(rp2.peak, abs=0.1)
 
 
 class TestTranscode:
@@ -49,18 +55,48 @@ class TestTranscode:
         Transcode().execute(REFERENCE_FILES.FLAC, out_path)
         Transcode().execute(REFERENCE_FILES.OGG, out_path)
 
-    @staticmethod
-    def test_transcode_replaygain(out_path):
-        """Tests transcoding with ReplayGain (track based)."""
-        Transcode(mode="replaygain").execute(REFERENCE_FILES.MP3_ALL, out_path)
-        Transcode(mode="replaygain").execute(REFERENCE_FILES.MP3, out_path)
+    REPLAYGAIN_TEST_FILES = [
+        REFERENCE_FILES.MP3_ALL,
+        REFERENCE_FILES.FLAC_ALL,
+        REFERENCE_FILES.OGG_ALL,
+    ]
 
     @staticmethod
-    def test_transcode_replaygainalbum(out_path):
-        """Tests transcoding with ReplayGain (album based)."""
-        Transcode(mode="replaygain-album", replaygain_preamp_gain=10.0).execute(
+    @pytest.mark.parametrize(
+        "in_path",
+        REPLAYGAIN_TEST_FILES,
+        ids=[path.name for path in REPLAYGAIN_TEST_FILES],
+    )
+    def test_transcode_replaygain(in_path, out_path):
+        """Tests transcoding with ReplayGain (track based)."""
+        Transcode(mode="replaygain").execute(in_path, out_path)
+        rp_info = Transcode.calculate_replaygain(out_path)
+        assert_approx_replaygain(rp_info, ReplayGain(0.0, 0.25))
+
+    @staticmethod
+    def test_transcode_replaygain_preamp(out_path):
+        """Tests transcoding with ReplayGain (track based) with preamp."""
+        Transcode(mode="replaygain", replaygain_preamp_gain=10.0).execute(
             REFERENCE_FILES.MP3_ALL, out_path
         )
+        rp_info = Transcode.calculate_replaygain(out_path)
+        assert_approx_replaygain(rp_info, ReplayGain(-10.0, 0.81))
+
+    @staticmethod
+    def test_transcode_replaygain_empty(out_path):
+        """Tests transcoding with ReplayGain (track based) without ReplayGain data."""
+        Transcode(mode="replaygain").execute(REFERENCE_FILES.MP3, out_path)
+        assert_approx_replaygain(
+            Transcode.calculate_replaygain(out_path),
+            Transcode.calculate_replaygain(REFERENCE_FILES.MP3),
+        )
+
+    @staticmethod
+    def test_transcode_replaygain_album(out_path):
+        """Tests transcoding with ReplayGain (album based)."""
+        Transcode(mode="replaygain-album").execute(REFERENCE_FILES.MP3_ALL, out_path)
+        rp_info = Transcode.calculate_replaygain(out_path)
+        assert_approx_replaygain(rp_info, ReplayGain(0.7, 0.25))
 
     @staticmethod
     def test_transcode_transcodeerror():
