@@ -22,7 +22,8 @@ import pathlib
 import mutagen
 import pytest
 
-from sync_music.transcode import ReplayGain, Transcode
+from sync_music.transcode import Transcode
+from sync_music.replaygain import ReplayGain
 
 from tests import REFERENCE_FILES, mutagen_filter_tags
 
@@ -81,7 +82,7 @@ class TestTranscode:
     def test_transcode_replaygain(in_path, out_path):
         """Tests transcoding with ReplayGain (track based)."""
         Transcode(mode="replaygain").execute(in_path, out_path)
-        rp_info = Transcode.calculate_replaygain(out_path)
+        rp_info = ReplayGain.from_audiotrack(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(0.0, 0.25))
         assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 
@@ -91,7 +92,7 @@ class TestTranscode:
         Transcode(mode="replaygain", replaygain_preamp_gain=10.0).execute(
             REFERENCE_FILES.MP3_ALL, out_path
         )
-        rp_info = Transcode.calculate_replaygain(out_path)
+        rp_info = ReplayGain.from_audiotrack(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(-10.0, 0.81))
         assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 
@@ -100,15 +101,15 @@ class TestTranscode:
         """Tests transcoding with ReplayGain (track based) without ReplayGain data."""
         Transcode(mode="replaygain").execute(REFERENCE_FILES.MP3, out_path)
         assert_approx_replaygain(
-            Transcode.calculate_replaygain(out_path),
-            Transcode.calculate_replaygain(REFERENCE_FILES.MP3),
+            ReplayGain.from_audiotrack(out_path),
+            ReplayGain.from_audiotrack(REFERENCE_FILES.MP3),
         )
 
     @staticmethod
     def test_transcode_replaygain_album(out_path):
         """Tests transcoding with ReplayGain (album based)."""
         Transcode(mode="replaygain-album").execute(REFERENCE_FILES.MP3_ALL, out_path)
-        rp_info = Transcode.calculate_replaygain(out_path)
+        rp_info = ReplayGain.from_audiotrack(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(0.7, 0.25))
         assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # sync_music - Sync music library to external device
 # Copyright (C) 2013-2018 Christian Fetzer
 #
@@ -15,29 +17,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-[metadata]
-name = sync_music
-summary = Sync music library to external devices
-description-file = README.rst
-url = https://github.com/fetzerch/sync_music
-author = Christian Fetzer
-author_email = fetzer.ch@gmail.com
-license = GPLv2+
-classifiers =
-    Development Status :: 4 - Beta
-    Environment :: Console
-    Intended Audience :: End Users/Desktop
-    License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
-    Natural Language :: English
-    Operating System :: POSIX
-    Programming Language :: Python :: 3 :: Only
-    Topic :: Multimedia :: Sound/Audio :: Conversion
-keywords = music synchronization
+"""sync_music_replaygain - Sync music library to external device."""
 
-[files]
-packages = sync_music
+from sync_music.replaygain import main
 
-[entry_points]
-console_scripts =
-    sync_music = sync_music.sync_music:main
-    sync_music_replaygain = sync_music.replaygain:main
+if __name__ == "__main__":
+    main()

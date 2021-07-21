@@ -17,16 +17,13 @@
 
 """Transcode action."""
 
-import collections
 import logging
 import re
 import subprocess
 
-import mutagen
+from .replaygain import ReplayGain
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
-
-ReplayGain = collections.namedtuple("ReplayGain", ["gain", "peak"])
 
 
 class Transcode:
@@ -85,22 +82,14 @@ class Transcode:
             # Unfortunately this doesn't seem to work with (some) ogg files
             # (for example tests/reference_data/audiofiles/withalltags.ogg).
 
-            rp_info = self.get_replaygain(
+            rp_info = ReplayGain.from_tags(
                 in_filepath, album_gain=self._mode == "replaygain-album"
             )
             if rp_info:
-                # Convert gain in dB to a multiplier (float)
-                volume_multiplier = 10.0 ** (
-                    (rp_info.gain + self._replaygain_preamp_gain) / 20
-                )
-
-                # Apply clipping protection
-                volume_multiplier = min(volume_multiplier, 1.0 / rp_info.peak)
-
                 filter_arguments.extend(
                     [
                         "-af",
-                        f"volume={volume_multiplier}",
+                        f"volume={rp_info.get_volume_multiplier(self._replaygain_preamp_gain)}",
                     ]
                 )
             else:
@@ -146,58 +135,3 @@ class Transcode:
             output.decode("utf-8"),
         )
         return match.group(1)
-
-    @staticmethod
-    def get_replaygain(in_filepath, album_gain=False):
-        """Read ReplayGain info from tags."""
-        in_file = mutagen.File(in_filepath)
-        tag_prefix = "TXXX:" if isinstance(in_file.tags, mutagen.id3.ID3) else ""
-        try:
-
-            def _get_rp_value(tag):
-                value = in_file.tags[f"{tag_prefix}{tag}"][0]
-                return float(value.replace("dB", ""))
-
-            if album_gain:
-                return ReplayGain(
-                    _get_rp_value("replaygain_album_gain"),
-                    _get_rp_value("replaygain_album_peak"),
-                )
-
-            return ReplayGain(
-                _get_rp_value("replaygain_track_gain"),
-                _get_rp_value("replaygain_track_peak"),
-            )
-        except (TypeError, KeyError):
-            return None
-
-    @staticmethod
-    def calculate_replaygain(in_filepath):
-        """Calculate replaygain data for the given file."""
-        output = subprocess.check_output(
-            [
-                "ffmpeg",
-                "-hide_banner",
-                "-nostdin",
-                "-i",
-                str(in_filepath),
-                "-af",
-                "ebur128=peak=sample:framelog=verbose",
-                "-f",
-                "null",
-                "-",
-            ],
-            stderr=subprocess.STDOUT,
-        )
-        # Parse lines such as:
-        #     I:         -11.3 LUFS
-        #     Peak:        0.1 dBFS
-        result = {
-            key: float(value)
-            for key, value in re.findall(
-                r"(\w+):\s+([+-]?\d+\.\d+)\s+(?:\w+)\n",
-                output.decode("utf-8"),
-            )
-        }
-        # Convert gain to ReplayGain v2.0 reference of 18 LUFS, convert peak dBFS to float
-        return ReplayGain(-(result["I"] + 18.0), 10 ** (result["Peak"] / 20.0))
