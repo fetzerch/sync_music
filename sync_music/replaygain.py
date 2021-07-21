@@ -67,6 +67,13 @@ class ReplayGain:
             elif isinstance(in_file, (mutagen.flac.FLAC, mutagen.oggvorbis.OggVorbis)):
                 gain = in_file.tags[f"replaygain_{tag_type}_gain"][0]
                 peak = in_file.tags[f"replaygain_{tag_type}_peak"][0]
+            elif isinstance(in_file, mutagen.mp4.MP4):
+                gain = in_file.tags[
+                    f"----:com.apple.iTunes:replaygain_{tag_type}_gain"
+                ][0].decode("utf-8", "ignore")
+                peak = in_file.tags[
+                    f"----:com.apple.iTunes:replaygain_{tag_type}_peak"
+                ][0].decode("utf-8", "ignore")
             else:
                 return None
             return cls(float(gain.replace("dB", "")), float(peak))

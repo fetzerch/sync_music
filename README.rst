@@ -18,7 +18,7 @@ on primitive music players that don't support the diversity of your
 collection.
 
 In normal operation mode, *sync_music* performs its synchronization tasks
-depending on the input file format. Music files in FLAC and Ogg Vorbis
+depending on the input file format. Music files in FLAC, Ogg Vorbis and M4A
 format are transcoded to MP3. MP3 audio files and other files are
 transferred unchanged. Filenames are adapted where necessary to comply
 with the FAT32 format. If preferred, *sync_music* can also forcefully
