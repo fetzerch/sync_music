@@ -25,7 +25,12 @@ import pytest
 from sync_music.transcode import Transcode
 from sync_music.replaygain import ReplayGain
 
-from tests import REFERENCE_FILES, mutagen_filter_tags
+from tests import (
+    ReferenceFiles,
+    mutagen_filter_tags,
+    run_withreferencefiles_alltags,
+    run_withreferencefiles_tags,
+)
 
 
 def assert_approx_replaygain(rp1, rp2):
@@ -47,20 +52,11 @@ class TestTranscode:
     def test_filename():
         """Tests retrieving the output file name."""
         transcode = Transcode()
-        out_filename = transcode.get_out_filename(REFERENCE_FILES.FLAC)
-        assert out_filename == REFERENCE_FILES.FLAC.with_suffix(".mp3")
-
-    DEFAULT_TEST_FILES = [
-        REFERENCE_FILES.MP3,
-        REFERENCE_FILES.FLAC,
-        REFERENCE_FILES.OGG,
-        REFERENCE_FILES.M4A,
-    ]
+        out_filename = transcode.get_out_filename(ReferenceFiles.FLAC)
+        assert out_filename == ReferenceFiles.FLAC.with_suffix(".mp3")
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "in_path", DEFAULT_TEST_FILES, ids=[path.name for path in DEFAULT_TEST_FILES]
-    )
+    @run_withreferencefiles_tags
     def test_transcode_default(in_path, out_path):
         """Test transcoding with default options."""
         Transcode().execute(in_path, out_path)
@@ -68,19 +64,8 @@ class TestTranscode:
         assert isinstance(out_file, mutagen.mp3.MP3)
         assert out_file.info.bitrate_mode == mutagen.mp3.BitrateMode.VBR
 
-    REPLAYGAIN_TEST_FILES = [
-        REFERENCE_FILES.MP3_ALL,
-        REFERENCE_FILES.FLAC_ALL,
-        REFERENCE_FILES.OGG_ALL,
-        REFERENCE_FILES.M4A_ALL,
-    ]
-
     @staticmethod
-    @pytest.mark.parametrize(
-        "in_path",
-        REPLAYGAIN_TEST_FILES,
-        ids=[path.name for path in REPLAYGAIN_TEST_FILES],
-    )
+    @run_withreferencefiles_alltags
     def test_transcode_replaygain(in_path, out_path):
         """Tests transcoding with ReplayGain (track based)."""
         Transcode(mode="replaygain").execute(in_path, out_path)
@@ -92,7 +77,7 @@ class TestTranscode:
     def test_transcode_replaygain_preamp(out_path):
         """Tests transcoding with ReplayGain (track based) with preamp."""
         Transcode(mode="replaygain", replaygain_preamp_gain=10.0).execute(
-            REFERENCE_FILES.MP3_ALL, out_path
+            ReferenceFiles.MP3_ALL, out_path
         )
         rp_info = ReplayGain.from_audiotrack(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(-10.0, 0.81))
@@ -101,16 +86,16 @@ class TestTranscode:
     @staticmethod
     def test_transcode_replaygain_empty(out_path):
         """Tests transcoding with ReplayGain (track based) without ReplayGain data."""
-        Transcode(mode="replaygain").execute(REFERENCE_FILES.MP3, out_path)
+        Transcode(mode="replaygain").execute(ReferenceFiles.MP3, out_path)
         assert_approx_replaygain(
             ReplayGain.from_audiotrack(out_path),
-            ReplayGain.from_audiotrack(REFERENCE_FILES.MP3),
+            ReplayGain.from_audiotrack(ReferenceFiles.MP3),
         )
 
     @staticmethod
     def test_transcode_replaygain_album(out_path):
         """Tests transcoding with ReplayGain (album based)."""
-        Transcode(mode="replaygain-album").execute(REFERENCE_FILES.MP3_ALL, out_path)
+        Transcode(mode="replaygain-album").execute(ReferenceFiles.MP3_ALL, out_path)
         rp_info = ReplayGain.from_audiotrack(out_path)
         assert_approx_replaygain(rp_info, ReplayGain(0.2, 0.25))
         assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
@@ -119,10 +104,10 @@ class TestTranscode:
     def test_transcode_transcodeerror():
         """Tests transcoding failure."""
         with pytest.raises(IOError):
-            Transcode().execute(REFERENCE_FILES.FLAC, pathlib.Path("/"))
+            Transcode().execute(ReferenceFiles.FLAC, pathlib.Path("/"))
 
     @staticmethod
     def test_transcode_formaterror(out_path):
         """Tests transcoding a non supported format."""
         with pytest.raises(IOError):
-            Transcode().execute(REFERENCE_FILES.FOLDER_IMAGE, out_path)
+            Transcode().execute(ReferenceFiles.FOLDER_IMAGE, out_path)

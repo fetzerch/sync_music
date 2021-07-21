@@ -253,33 +253,34 @@ class ProcessMetadata:
                 )
             )
 
+    ID3_TAGS = [
+        "TALB",
+        "TPE1",
+        "TPE2",
+        "TIT2",
+        "TCON",
+        "TDRC",
+        "TRCK",
+        "TPOS",
+        "APIC:",
+        "UFID:http://musicbrainz.org",
+        "TXXX:MusicBrainz Artist Id",
+        "TXXX:MusicBrainz Album Artist Id",
+        "TXXX:MusicBrainz Release Group Id",
+        "TXXX:MusicBrainz Album Id",
+        "TXXX:MusicBrainz Release Track Id",
+        "TXXX:replaygain_album_gain",
+        "TXXX:replaygain_album_peak",
+        "TXXX:replaygain_track_gain",
+        "TXXX:replaygain_track_peak",
+    ]
+
     @classmethod
     def copy_id3_to_id3(cls, src_tags, dest_tags):
         """Copy tags from ID3 to ID3."""
-        taglist = [
-            "TALB",
-            "TPE1",
-            "TPE2",
-            "TIT2",
-            "TCON",
-            "TDRC",
-            "TRCK",
-            "TPOS",
-            "APIC:",
-            "UFID:http://musicbrainz.org",
-            "TXXX:MusicBrainz Artist Id",
-            "TXXX:MusicBrainz Album Artist Id",
-            "TXXX:MusicBrainz Release Group Id",
-            "TXXX:MusicBrainz Album Id",
-            "TXXX:MusicBrainz Release Track Id",
-            "TXXX:replaygain_album_gain",
-            "TXXX:replaygain_album_peak",
-            "TXXX:replaygain_track_gain",
-            "TXXX:replaygain_track_peak",
-        ]
         if src_tags is None:
             return
-        for tag in taglist:
+        for tag in cls.ID3_TAGS:
             if tag in src_tags:
                 dest_tags.add(src_tags[tag])
 

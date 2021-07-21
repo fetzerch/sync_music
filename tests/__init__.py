@@ -19,10 +19,12 @@
 
 import pathlib
 
+import pytest
+
 REFERENCE_PATH = pathlib.Path("tests/reference_data/audiofiles")
 
 
-class REFERENCE_FILES:  # pylint: disable=invalid-name, too-few-public-methods
+class ReferenceFiles:  # pylint: disable=too-few-public-methods
     """Test reference files."""
 
     FLAC = REFERENCE_PATH / "withtags.flac"
@@ -41,7 +43,50 @@ class REFERENCE_FILES:  # pylint: disable=invalid-name, too-few-public-methods
     M4A_EMPTY = REFERENCE_PATH / "stripped.m4a"
     FOLDER_IMAGE = REFERENCE_PATH / "folder.jpg"
 
+    WITH_TAGS = [
+        MP3,
+        FLAC,
+        OGG,
+        M4A,
+    ]
+    WITH_TAGS_IDS = [path.name for path in WITH_TAGS]
+
+    WITH_ALLTAGS = [
+        MP3_ALL,
+        FLAC_ALL,
+        OGG_ALL,
+        M4A_ALL,
+    ]
+    WITH_ALLTAGS_IDS = [path.name for path in WITH_ALLTAGS]
+
+    WITH_NOTAGS = [
+        MP3_EMPTY,
+        FLAC_EMPTY,
+        OGG_EMPTY,
+        M4A_EMPTY,
+    ]
+    WITH_NOTAGS_IDS = [path.name for path in WITH_NOTAGS]
+
+
+run_withreferencefiles_tags = pytest.mark.parametrize(
+    "in_path",
+    ReferenceFiles.WITH_TAGS,
+    ids=ReferenceFiles.WITH_TAGS_IDS,
+)
+
+run_withreferencefiles_alltags = pytest.mark.parametrize(
+    "in_path",
+    ReferenceFiles.WITH_ALLTAGS,
+    ids=ReferenceFiles.WITH_ALLTAGS_IDS,
+)
+
+run_withreferencefiles_notags = pytest.mark.parametrize(
+    "in_path",
+    ReferenceFiles.WITH_NOTAGS,
+    ids=ReferenceFiles.WITH_NOTAGS_IDS,
+)
+
 
 def mutagen_filter_tags(mutagen_file, search):
-    """List filtered mutagen tag keys"""
+    """List filtered mutagen tag keys."""
     return [tag for tag in mutagen_file.tags.keys() if search in tag]

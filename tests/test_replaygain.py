@@ -21,7 +21,7 @@ import pytest
 
 from sync_music.replaygain import ReplayGain
 
-from tests import REFERENCE_FILES
+from tests import ReferenceFiles
 
 
 def assert_approx_replaygain(rp1, rp2):
@@ -52,9 +52,9 @@ class TestReplayGain:
         assert_approx_multiplicator(ReplayGain(4.0, 1.0).get_volume_multiplier(), 1.0)
 
     REPLAYGAIN_TEST_FILES = [
-        (REFERENCE_FILES.MP3_ALL, ReplayGain(1.91, 0.18)),
-        (REFERENCE_FILES.FLAC_ALL, ReplayGain(0.65, 0.10)),
-        (REFERENCE_FILES.OGG_ALL, ReplayGain(1.01, 0.21)),
+        (ReferenceFiles.MP3_ALL, ReplayGain(1.91, 0.18)),
+        (ReferenceFiles.FLAC_ALL, ReplayGain(0.65, 0.10)),
+        (ReferenceFiles.OGG_ALL, ReplayGain(1.01, 0.21)),
     ]
 
     @staticmethod
@@ -71,12 +71,12 @@ class TestReplayGain:
     @staticmethod
     def test_replaygain_tags_empty():
         """Tests reading ReplayGain information from a file with empty tags."""
-        assert not ReplayGain.from_tags(REFERENCE_FILES.FLAC_EMPTY)
+        assert not ReplayGain.from_tags(ReferenceFiles.FLAC_EMPTY)
 
     @staticmethod
     def test_replaygain_tags_formaterror():
         """Tests reading ReplayGain information from a non supported format."""
-        assert not ReplayGain.from_tags(REFERENCE_FILES.FOLDER_IMAGE)
+        assert not ReplayGain.from_tags(ReferenceFiles.FOLDER_IMAGE)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -92,4 +92,4 @@ class TestReplayGain:
     @staticmethod
     def test_replaygain_audiotrack_formaterror():
         """Tests reading ReplayGain information from a non supported format."""
-        assert not ReplayGain.from_audiotrack(REFERENCE_FILES.FOLDER_IMAGE)
+        assert not ReplayGain.from_audiotrack(ReferenceFiles.FOLDER_IMAGE)
