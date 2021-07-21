@@ -83,6 +83,9 @@ class ProcessMetadata:
         elif isinstance(in_file, (mutagen.flac.FLAC, mutagen.oggvorbis.OggVorbis)):
             self.copy_vorbis_to_id3(in_file.tags, mp3_file.tags)
             self.copy_vorbis_picture_to_id3(in_file, mp3_file.tags)
+        elif isinstance(in_file, mutagen.mp4.MP4):
+            self.copy_mp4_to_id3(in_file.tags, mp3_file.tags)
+            self.copy_mp4_picture_to_id3(in_file, mp3_file.tags)
         else:
             raise IOError("Input file tag conversion not implemented")
 
@@ -178,6 +181,75 @@ class ProcessMetadata:
                     data=picture.data,
                     type=picture.type,
                     mime=picture.mime,
+                )
+            )
+
+    @classmethod
+    def copy_mp4_to_id3(cls, src_tags, dest_tags):
+        """Copy tags in MP4 format (m4a, ...) to ID3 format."""
+        tagtable = {
+            "\xa9alb": mutagen.id3.TALB,
+            "\xa9ART": mutagen.id3.TPE1,
+            "aART": mutagen.id3.TPE2,
+            "\xa9nam": mutagen.id3.TIT2,
+            "\xa9gen": mutagen.id3.TCON,
+            "\xa9day": mutagen.id3.TDRC,
+            "trkn": mutagen.id3.TRCK,
+            "disk": mutagen.id3.TPOS,
+            "----:com.apple.iTunes:MusicBrainz Track Id": "http://musicbrainz.org",
+            "----:com.apple.iTunes:MusicBrainz Artist Id": "MusicBrainz Artist Id",
+            "----:com.apple.iTunes:MusicBrainz Album Artist Id": "MusicBrainz Album Artist Id",
+            "----:com.apple.iTunes:MusicBrainz Release Group Id": "MusicBrainz Release Group Id",
+            "----:com.apple.iTunes:MusicBrainz Album Id": "MusicBrainz Album Id",
+            "----:com.apple.iTunes:MusicBrainz Release Track Id": "MusicBrainz Release Track Id",
+            "----:com.apple.iTunes:replaygain_album_gain": "replaygain_album_gain",
+            "----:com.apple.iTunes:replaygain_album_peak": "replaygain_album_peak",
+            "----:com.apple.iTunes:replaygain_track_gain": "replaygain_track_gain",
+            "----:com.apple.iTunes:replaygain_track_peak": "replaygain_track_peak",
+        }
+        for tag, id3tag in tagtable.items():
+            if tag in src_tags:
+                if tag == "trkn":
+                    track = str(src_tags["trkn"][0][0])
+                    if src_tags["trkn"][0][1] != 0:
+                        track = f"{track}/{src_tags['trkn'][0][1]}"
+                    dest_tags.add(id3tag(encoding=3, text=track))
+                elif tag == "disk":
+                    disk = str(src_tags["disk"][0][0])
+                    if src_tags["disk"][0][1] != 0:
+                        disk = f"{disk}/{src_tags['disk'][0][1]}"
+                    dest_tags.add(id3tag(encoding=3, text=disk))
+                elif tag == "----:com.apple.iTunes:MusicBrainz Track Id":
+                    dest_tags.add(mutagen.id3.UFID(owner=id3tag, data=src_tags[tag][0]))
+                elif isinstance(id3tag, str):  # TXXX tags
+                    dest_tags.add(
+                        mutagen.id3.TXXX(
+                            encoding=3,
+                            desc=id3tag,
+                            text=src_tags[tag][0].decode("utf-8", "ignore"),
+                        )
+                    )
+                else:  # All other tags
+                    dest_tags.add(id3tag(encoding=3, text=src_tags[tag][0]))
+
+    @classmethod
+    def copy_mp4_picture_to_id3(cls, in_file, dest_tags):
+        """Copy pictures from mp4 format to ID3 format."""
+        if "covr" in in_file.tags:
+            picture = in_file["covr"][0]
+
+            # MP4 & Mutagen supports only PNG or JPEG, default being JPEG.
+            mime = "jpeg"
+            if picture.imageformat == mutagen.mp4.AtomDataType.PNG:
+                mime = "png"
+
+            dest_tags.add(
+                mutagen.id3.APIC(
+                    encoding=3,
+                    desc="",
+                    data=picture,
+                    type=mutagen.id3.PictureType.COVER_FRONT,
+                    mime=f"mime/{mime}",
                 )
             )
 

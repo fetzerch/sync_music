@@ -61,7 +61,7 @@ class Transcode:
     @staticmethod
     def get_supported_filetypes():
         """Determine supported file types."""
-        return [".flac", ".ogg", ".mp3"]
+        return [".flac", ".ogg", ".mp3", ".m4a"]
 
     def get_out_filetype(self):
         """Determine output file type."""

@@ -54,6 +54,7 @@ class TestTranscode:
         REFERENCE_FILES.MP3,
         REFERENCE_FILES.FLAC,
         REFERENCE_FILES.OGG,
+        REFERENCE_FILES.M4A,
     ]
 
     @staticmethod
@@ -71,6 +72,7 @@ class TestTranscode:
         REFERENCE_FILES.MP3_ALL,
         REFERENCE_FILES.FLAC_ALL,
         REFERENCE_FILES.OGG_ALL,
+        REFERENCE_FILES.M4A_ALL,
     ]
 
     @staticmethod
@@ -110,7 +112,7 @@ class TestTranscode:
         """Tests transcoding with ReplayGain (album based)."""
         Transcode(mode="replaygain-album").execute(REFERENCE_FILES.MP3_ALL, out_path)
         rp_info = ReplayGain.from_audiotrack(out_path)
-        assert_approx_replaygain(rp_info, ReplayGain(0.7, 0.25))
+        assert_approx_replaygain(rp_info, ReplayGain(0.2, 0.25))
         assert not mutagen_filter_tags(mutagen.File(out_path), "replaygain")
 
     @staticmethod

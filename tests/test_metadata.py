@@ -48,6 +48,10 @@ class TestMetadata:
         REFERENCE_FILES.OGG,
         REFERENCE_FILES.OGG_ALL,
         REFERENCE_FILES.OGG_EMPTY,
+        REFERENCE_FILES.M4A,
+        REFERENCE_FILES.M4A_ALL,
+        REFERENCE_FILES.M4A_EMPTY,
+        REFERENCE_FILES.M4A_PNGIMAGE,
     ]
 
     @staticmethod
@@ -75,6 +79,13 @@ class TestMetadata:
         in_filepath = out_path.parent / REFERENCE_FILES.FLAC.name
         shutil.copy(REFERENCE_FILES.FLAC, in_filepath)
         ProcessMetadata().execute(in_filepath, out_path)
+
+    @staticmethod
+    def test_processmetadata_m4a_pngimage(out_path):
+        """Tests transcoding an M4A file with PNG image."""
+        ProcessMetadata().execute(REFERENCE_FILES.M4A_PNGIMAGE, out_path)
+        tags = mutagen.File(out_path).tags
+        assert tags["APIC:"].mime == "mime/png"
 
     @staticmethod
     def test_processmetadata_artist_hack(out_path):

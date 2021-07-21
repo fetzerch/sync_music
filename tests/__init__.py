@@ -35,6 +35,10 @@ class REFERENCE_FILES:  # pylint: disable=invalid-name, too-few-public-methods
     MP3_ALL = REFERENCE_PATH / "withalltags.mp3"
     MP3_EMPTY = REFERENCE_PATH / "stripped.mp3"
     MP3_BROKENTRACKNUMBER = REFERENCE_PATH / "brokentag_tracknumber.mp3"
+    M4A = REFERENCE_PATH / "withtags.m4a"
+    M4A_ALL = REFERENCE_PATH / "withalltags.m4a"
+    M4A_PNGIMAGE = REFERENCE_PATH / "png_image.m4a"
+    M4A_EMPTY = REFERENCE_PATH / "stripped.m4a"
     FOLDER_IMAGE = REFERENCE_PATH / "folder.jpg"
 
 
