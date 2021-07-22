@@ -20,6 +20,7 @@
 import logging
 import re
 import subprocess
+import sys
 
 from .replaygain import ReplayGain
 
@@ -95,7 +96,7 @@ class Transcode:
             else:
                 logger.warning("No ReplayGain info found: %s", in_filepath)
         try:
-            subprocess.check_call(
+            subprocess.run(
                 [
                     "ffmpeg",
                     "-hide_banner",
@@ -116,10 +117,13 @@ class Transcode:
                     "-q:a",
                     self._quality,
                     str(out_filepath),
-                ]
+                ],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as err:
-            raise IOError from err
+            raise IOError(f"{err}\n{err.stdout.decode(sys.stdout.encoding)}") from err
 
     @staticmethod
     def _get_ffmpeg_version():
