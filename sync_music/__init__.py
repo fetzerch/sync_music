@@ -29,7 +29,7 @@ def verify_interpreter_version():
     version = python_version()
     if parse_version(version) < parse_version(minversion):  # pragma: no cover
         sys.stdout.write(
-            "Incompatible Python version, minimum supported "
+            "Incompatible Python version, minimum supported "  # pylint: disable=consider-using-f-string
             "version {}, found version {}\n".format(minversion, version)
         )
         sys.exit(1)
