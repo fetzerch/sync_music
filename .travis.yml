@@ -17,10 +17,14 @@ jobs:
       env: TOXENV=py38
     - python: 3.9
       env: TOXENV=py39
+    - python: 3.10
+      env: TOXENV=py310
+    - python: 3.11
+      env: TOXENV=py311
       install: pip install tox coveralls
       after_success: coveralls
     - stage: deploy
-      python: 3.8
+      python: 3.11
       install: skip
       script: skip
       deploy:

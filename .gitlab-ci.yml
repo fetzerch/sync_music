@@ -41,3 +41,15 @@ py39:
   image: python:3.9
   variables:
     TOXENV: py39
+
+py310:
+  extends: .tox
+  image: python:3.10
+  variables:
+    TOXENV: py310
+
+py311:
+  extends: .tox
+  image: python:3.11
+  variables:
+    TOXENV: py311
