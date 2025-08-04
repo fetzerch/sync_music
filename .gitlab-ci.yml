@@ -1,15 +1,33 @@
-cache:
-  paths:
-    - .pip
-    - .tox
+variables:
+  # dunamai needs the full Git history to properly create package versions.
+  # See: https://docs.gitlab.com/ee/user/project/repository/monorepos/index.html#shallow-cloning
+  GIT_DEPTH: "0"
+  UV_VERSION: "0.7"
+  PYTHON_VERSION: "3.13"
+  BASE_LAYER: bookworm-slim
+  # GitLab CI creates a separate mountpoint for the build directory,
+  # so we need to copy instead of using hard links.
+  UV_LINK_MODE: copy
+  UV_CACHE_DIR: .uv-cache
+  UV_TOOL_BIN_DIR: /usr/local/bin
 
-.tox:
+cache:
+  - key:
+      files:
+        - uv.lock
+    paths:
+      - $UV_CACHE_DIR
+
+image: ghcr.io/astral-sh/uv:$UV_VERSION-python$PYTHON_VERSION-$BASE_LAYER
+
+tox:
   before_script:
     - apt-get update &&
       apt-get install -y ffmpeg
-    - pip --cache-dir=.pip install tox
+    - uv tool install tox --with tox-uv
   script:
     - tox -- --junitxml=junit.xml --cov-report=xml:coverage.xml
+    - uv cache prune --ci
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     reports:
@@ -17,39 +35,21 @@ cache:
         coverage_format: cobertura
         path: coverage.xml
       junit: junit.xml
+  parallel:
+    matrix:
+      - PYTHON_VERSION: "3.9"
+        TOXENV: py39
+      - PYTHON_VERSION: "3.10"
+        TOXENV: py310
+      - PYTHON_VERSION: "3.11"
+        TOXENV: py311
+      - PYTHON_VERSION: "3.12"
+        TOXENV: py312
+      - PYTHON_VERSION: "3.13"
+        TOXENV: py313
 
-py36:
-  extends: .tox
-  image: python:3.6
-  variables:
-    TOXENV: py36
-
-py37:
-  extends: .tox
-  image: python:3.7
-  variables:
-    TOXENV: py37
-
-py38:
-  extends: .tox
-  image: python:3.8
-  variables:
-    TOXENV: py38
-
-py39:
-  extends: .tox
-  image: python:3.9
-  variables:
-    TOXENV: py39
-
-py310:
-  extends: .tox
-  image: python:3.10
-  variables:
-    TOXENV: py310
-
-py311:
-  extends: .tox
-  image: python:3.11
-  variables:
-    TOXENV: py311
+pre-commit:
+  before_script:
+    - apt-get update -y && apt-get install -yq git
+  script:
+    - uvx --with pre-commit-uv pre-commit run --all-files

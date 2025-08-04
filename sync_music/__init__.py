@@ -16,23 +16,3 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 """sync_music - Sync music library to external device."""
-
-import sys
-
-from platform import python_version
-from pkg_resources import parse_version
-
-
-def verify_interpreter_version():
-    """Verify the Pyhton interpreter version."""
-    minversion = "3.6"
-    version = python_version()
-    if parse_version(version) < parse_version(minversion):  # pragma: no cover
-        sys.stdout.write(
-            "Incompatible Python version, minimum supported "  # pylint: disable=consider-using-f-string
-            "version {}, found version {}\n".format(minversion, version)
-        )
-        sys.exit(1)
-
-
-verify_interpreter_version()

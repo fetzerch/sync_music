@@ -21,13 +21,12 @@ import codecs
 import collections
 import logging
 import argparse
+import importlib.metadata
 import configparser
 import pathlib
 import sys
 
 from multiprocessing import Pool
-
-import pbr.version
 
 from . import util
 from .hashdb import HashDb
@@ -35,7 +34,7 @@ from .copy import Copy
 from .metadata import ProcessMetadata
 from .transcode import Transcode
 
-__version__ = pbr.version.VersionInfo("sync_music").release_string()
+__version__ = importlib.metadata.version("sync_music")
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -99,9 +98,11 @@ class SyncMusic:
             "%04d/%04d: %s %s%s",
             file_task.index,
             file_task.total,
-            ", ".join(action.name for action in file_task.actions)
-            if file_task.actions
-            else "Skipping",
+            (
+                ", ".join(action.name for action in file_task.actions)
+                if file_task.actions
+                else "Skipping"
+            ),
             file_task.in_filename,
             f" to {out_filename}" if out_filename else "",
         )
@@ -205,7 +206,7 @@ class SyncMusic:
                     with Pool(processes=self._args.jobs) as pool:
                         file_hashes = pool.map(self._process_file, file_tasks)
 
-            except:  # noqa, pylint: disable=bare-except
+            except:  # pylint: disable=bare-except # noqa: E722
                 logger.error(">>> traceback <<<")
                 logger.exception("Exception")
                 logger.error(">>> end of traceback <<<")
@@ -344,12 +345,12 @@ def load_settings(arguments=None):  # pylint: disable=too-many-locals
     parser_audio.add_argument(
         "--disable-file-processing",
         action="store_true",
-        help="disable processing files, update tags " "(if not explicitly disabled)",
+        help="disable processing files, update tags (if not explicitly disabled)",
     )
     parser_audio.add_argument(
         "--disable-tag-processing",
         action="store_true",
-        help="disable processing tags, update files " "(if not explicitly disabled)",
+        help="disable processing tags, update files (if not explicitly disabled)",
     )
     parser_audio.add_argument(
         "-f",

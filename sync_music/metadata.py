@@ -30,7 +30,7 @@ class ProcessMetadata:
 
     name = "Processing Metadata"
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         copy_replaygain=True,
         albumartist_artist_hack=False,

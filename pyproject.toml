@@ -1,0 +1,62 @@
+# sync_music - Sync music library to external device
+# Copyright (C) 2013-2018 Christian Fetzer
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+[project]
+name = "sync_music"
+description = "Sync music library to external devices"
+version = "0.5.0"
+authors = [
+  {name = "Christian Fetzer", email = "fetzer.ch@gmail.com"},
+]
+license = "GPL-2.0-or-later"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Multimedia :: Sound/Audio :: Conversion",
+]
+keywords = [
+    "music",
+    "synchronization",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "mutagen>=1.29",
+]
+[dependency-groups]
+dev = [
+    "pylint>=3.3.7",
+    "pytest>=7.0.1",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+]
+
+[project.urls]
+Repository = "https://github.com/fetzerch/sync_music"
+
+[project.scripts]
+sync_music = "sync_music.sync_music:main"
+sync_music_replaygain = "sync_music.replaygain:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
