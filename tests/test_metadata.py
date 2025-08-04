@@ -51,7 +51,7 @@ class TestMetadata:
         reference_tags = mutagen.File(ReferenceFiles.MP3_ALL).tags
         tags = mutagen.File(out_path).tags
 
-        for tag in [tag for tag in ProcessMetadata.ID3_TAGS if not "replaygain" in tag]:
+        for tag in [tag for tag in ProcessMetadata.ID3_TAGS if "replaygain" not in tag]:
             assert tags[tag] == reference_tags[tag]
 
         for tag in [tag for tag in ProcessMetadata.ID3_TAGS if "replaygain" in tag]:
@@ -139,7 +139,7 @@ class TestMetadata:
         ProcessMetadata(albumartist_composer_hack=True).execute(
             ReferenceFiles.FLAC_EMPTY, out_path
         )
-        assert not "TCOM" in mutagen.File(out_path).tags.keys()
+        assert "TCOM" not in mutagen.File(out_path).tags.keys()
 
     @staticmethod
     def test_processmetadata_artist_albumartist_hack(out_path):

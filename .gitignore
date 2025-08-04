@@ -23,6 +23,7 @@ var/
 *.egg
 AUTHORS
 ChangeLog
+.uv-cache/
 
 # Installer logs
 pip-log.txt
